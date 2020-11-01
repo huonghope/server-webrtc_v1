@@ -7,6 +7,13 @@
 var app = require('../app');
 var debug = require('debug')('server-webrtc:server');
 var http = require('http');
+const https = require('https');
+const fs = require('fs');
+
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
 
 /**
  * Get port from environment and store in Express.
@@ -20,7 +27,7 @@ console.log("LISTENING PORT", port)
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+var server = https.createServer(options, app);
 app.io.attach(server)
 
 /**
