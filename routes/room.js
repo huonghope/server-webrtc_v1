@@ -41,7 +41,6 @@ router.post('/createroom', async function (req, res) {
 
 router.get('/search', async function (req, res) {
     const { username } = req.query;
-    console.log(username)
     let [rows] = await db.query(sql.room.getRoomsByUsername, [username])
     res.send({
         result: true,
@@ -49,6 +48,26 @@ router.get('/search', async function (req, res) {
         message: '미팅 방 만들기 성공함 '
     })
 })
+
+router.get('/gethostroom', async function (req, res) {
+    const { roomname,username } = req.query;
+    let [row] = await db.query(sql.room.selectRoomByUsername, [roomname, username])
+    if(row.length === 1){
+        let [row] = await db.query(sql.room.getHostSocketIdByRoomname, [roomname])
+        res.send({
+            result: true,
+            data: row[0].socket_id,
+            message: '해당하는 유저는 '
+        })
+    }else{
+        res.send({
+            result: true,
+            data: [],
+            message: '해당하는 유저는 '
+        })
+    }
+})
+
 
 
 var rooms = {}
@@ -110,7 +129,6 @@ router.joinRoom = function (io) {
         checkRoom();
 
 
-        console.log("check room", rooms[room])
         // connectedPeers.set(socket.id, socket)
 
         // console.log(socket.id, room)
