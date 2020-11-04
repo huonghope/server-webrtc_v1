@@ -20,9 +20,9 @@ router.post('/createroom', async function (req, res) {
     console.log(row)
     if(row.length === 0)
     {
-        const id = uid(10);
-        await db.query(sql.room.createRoom, [roomname, id, username])
-        let [row] = await db.query(sql.room.getInformationRoomByName, [roomname])
+        // const id = uid(10);
+        await db.query(sql.room.createRoom, [roomname, username])
+        let [row] = await db.query(sql.room.getInformationRoomByName, [roomname, username])
         res.send({
             result: true,
             data: row,
@@ -51,7 +51,7 @@ router.get('/search', async function (req, res) {
 })
 
 
-const rooms = {}
+var rooms = {}
 const messages = {}
 
 router.joinRoom = function (io) {
@@ -59,49 +59,68 @@ router.joinRoom = function (io) {
 
         console.log('connected', socket.id)
         //!roomname or roomid
-        // socket.on('joinroom', async ({username, roomname}) => {
-        //     //rootUser는 방을 만듦어야함
-        //     //들어가는 user가 rootUser socket_id 기준으로 socket 접급
-        //     const [row] = await db(sql.room.getInformationRoomByName, [roomname])
-        //     if(row.length !== 0 ){
-
-        //         socket.join(row[0].socket_id)
-
-        //          // Send users and room info
-        //         io.to(row[0].socket_id).emit('roomUsers', {
-        //             room: row[0].roonname,
-        //             users: username
-        //         });
-        //     }
-        //     res.send({
-        //         result: true,
-        //         data: [],
-        //         message: '해당하는 방이 없음'
-        //     })
-
-        // })
-
         //! room 변수를 받아서 Socket를 그룹을 생성
-        const room = socket.handshake.query.room
+        let room = socket.handshake.query.room //join 한방 사람임
+        const username = socket.handshake.query.username //name
 
-        rooms[room] = rooms[room] && rooms[room].set(socket.id, socket) || (new Map()).set(socket.id, socket)
+        //Socket host
+        if(!rooms[room]){
+            rooms[room] = new Map();
+            rooms[room].set(socket.id, socket);
+        }
+        
+        //해당하는사람이 룸을 먼저 들어가면[또는 디비에서 저장되는거 없음] => Host user
+        // rooms[room] = rooms[room] && rooms[room].set(socket.id,socket) || (new Map()).set(socket.id, socket)
+
+        const checkRoom = async () => {
+            let [row] = await db.query(sql.room.getInformationRoomByName, [room, username])
+            if(row.length === 1) //host user
+            {
+                let [row] = await db.query(sql.room.selectRoomByUsername, [room, username])
+                rooms[room] = new Map([[socket.id, socket], ...rooms[room]]);
+                // console.log(row)
+                if(row.length === 0)
+                {
+                    await db.query(sql.room.insertRoomUser, [username, room, 1, socket.id])
+
+                }else if(row.length === 1) { //exists update by socket.id for host
+                    await db.query(sql.room.updateSocketId, [socket.id, room, username])
+                }
+        
+            }else{
+                let [row] = await db.query(sql.room.selectRoomByUsername, [room, username])
+                if(row.length === 0)
+                {
+                    await db.query(sql.room.insertRoomUser, [username, room, 0, socket.id])
+                }else if(row.length === 1) {
+                    await db.query(sql.room.updateSocketId, [socket.id, room, username])
+                }
+                rooms[room].set(socket.id, socket);
+            }
+            socket.emit('connection-success', {
+                isHost: socket.id === rooms[room].entries().next().value[0],
+                success: socket.id,
+                peerCount: rooms[room].size,
+                messages: messages[room],
+            })
+        }
+
         messages[room] = messages[room] || []
+        // console.log(rooms)
+        checkRoom();
 
+
+        console.log("check room", rooms[room])
         // connectedPeers.set(socket.id, socket)
 
-        console.log(socket.id, room)
-        socket.emit('connection-success', {
-            success: socket.id,
-            peerCount: rooms[room].size,
-            messages: messages[room],
-        })
-
+        // console.log(socket.id, room)
+     
         // const broadcast = () => socket.broadcast.emit('joined-peers', {
         //   peerCount: connectedPeers.size,
         // })
+
         const broadcast = () => {
             const _connectedPeers = rooms[room]
-
             for (const [socketID, _socket] of _connectedPeers.entries()) {
                 // if (socketID !== socket.id) {
                 _socket.emit('joined-peers', {
@@ -112,10 +131,6 @@ router.joinRoom = function (io) {
         }
         broadcast()
 
-        // const disconnectedPeer = (socketID) => socket.broadcast.emit('peer-disconnected', {
-        //   peerCount: connectedPeers.size,
-        //   socketID: socketID
-        // })
         const disconnectedPeer = (socketID) => {
             const _connectedPeers = rooms[room]
             for (const [_socketID, _socket] of _connectedPeers.entries()) {
@@ -128,12 +143,11 @@ router.joinRoom = function (io) {
 
         socket.on('new-message', (data) => {
             console.log('new-message', JSON.parse(data.payload))
-
             messages[room] = [...messages[room], JSON.parse(data.payload)]
         })
 
         socket.on('disconnect', () => {
-            console.log('disconnected')
+            console.log('disconnected',socket.id)
             // connectedPeers.delete(socket.id)
             rooms[room].delete(socket.id)
             messages[room] = rooms[room].size === 0 ? null : messages[room]
