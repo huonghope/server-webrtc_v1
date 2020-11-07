@@ -49,6 +49,7 @@ router.get('/search', async function (req, res) {
     })
 })
 
+//방의 host 출력함
 router.get('/gethostroom', async function (req, res) {
     const { roomname,username } = req.query;
     let [row] = await db.query(sql.room.selectRoomByUsername, [roomname, username])
@@ -68,8 +69,6 @@ router.get('/gethostroom', async function (req, res) {
     }
 })
 
-
-
 var rooms = {}
 const messages = {}
 
@@ -77,7 +76,6 @@ router.joinRoom = function (io) {
     io.on('connection', function (socket) {
 
         console.log('connected', socket.id)
-        //!roomname or roomid
         //! room 변수를 받아서 Socket를 그룹을 생성
         let room = socket.handshake.query.room //join 한방 사람임
         const username = socket.handshake.query.username //name
