@@ -191,6 +191,27 @@ router.joinRoom = function (io) {
                 }
             }
         })
+        socket.on('allmute', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, _socket] of _connectedPeers.entries()) {
+                console.log("allmute asad",socketID,data.socketID.local )
+                // don't send to self
+                if (socketID !== data.socketID.local) {
+                    _socket.emit('request_mic_mute', socketID)
+                }
+            }
+        })
+
+        socket.on('request_question', (data) => {
+            const [socketID, _socket] =  rooms[room].entries().next().value;
+            _socket.emit('request_question', data.socketID.local)
+            
+        })
+        socket.on('request_out', (data) => {
+            const [socketID, _socket] =  rooms[room].entries().next().value;
+            _socket.emit('request_question', data.socketID.local)
+        })
+
 
         socket.on('offer', data => {
             // console.log(data)
