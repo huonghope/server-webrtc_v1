@@ -194,7 +194,6 @@ router.joinRoom = function (io) {
         socket.on('allmute', (data) => {
             const _connectedPeers = rooms[room]
             for (const [socketID, _socket] of _connectedPeers.entries()) {
-                console.log("allmute asad",socketID,data.socketID.local )
                 // don't send to self
                 if (socketID !== data.socketID.local) {
                     _socket.emit('request_mic_mute', socketID)
@@ -209,7 +208,40 @@ router.joinRoom = function (io) {
         })
         socket.on('request_out', (data) => {
             const [socketID, _socket] =  rooms[room].entries().next().value;
-            _socket.emit('request_question', data.socketID.local)
+            _socket.emit('request_out', data.socketID.local)
+        })
+
+        socket.on('action_user_request_cancel_out', (data) => {
+            const [socketID, _socket] =  rooms[room].entries().next().value;
+            _socket.emit('action_host_request_cancel_out', data.socketID.local)
+        })
+
+        //host user button click event
+        socket.on('action_user_request', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, _socket] of _connectedPeers.entries()) {
+                // don't send to self
+                if (socketID === data.socketID.remoteSocketId) {
+                    switch (data.payload.method) {
+                        case "question":
+                            //only send to request user
+                            _socket.emit('action_user_request_question', data.payload.type)
+                            break;
+                        case "out":
+                            console.log("server send", data)
+                            // send to host 
+                            socket.emit('action_user_request_out_host',{
+                                type: data.payload.type,
+                                remoteSocketId: data.socketID.remoteSocketId
+                            })
+                            //sent to user
+                            _socket.emit('action_user_request_out_normaluser', data.payload.type)
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         })
 
 
