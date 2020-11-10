@@ -158,7 +158,7 @@ router.joinRoom = function (io) {
         }
 
         socket.on('new-message', (data) => {
-            console.log('new-message', JSON.parse(data.payload))
+            // console.log('new-message', JSON.parse(data.payload))
             messages[room] = [...messages[room], JSON.parse(data.payload)]
         })
 
@@ -214,6 +214,15 @@ router.joinRoom = function (io) {
         socket.on('action_user_request_cancel_out', (data) => {
             const [socketID, _socket] =  rooms[room].entries().next().value;
             _socket.emit('action_host_request_cancel_out', data.socketID.local)
+        })
+        socket.on('action_host_chat', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, _socket] of _connectedPeers.entries()) {
+                // don't send to self
+                if (socketID !== data.socketID.local) {
+                    _socket.emit('action_host_chat', socketID)
+                }
+            }
         })
 
         //host user button click event
