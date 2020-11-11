@@ -9,6 +9,7 @@ module.exports = {
     getInformationRoomByAllName: 'select * from plass_room where roomname = ? and username = ?',
     getRoomsByUsername: 'select * from plass_room where username = ?',
     getHostSocketIdByRoomname: 'select * from plass_userroom where roomname = ? and host_user = 1',
+    getRoomByRoomname: 'select * from plass_room where roomname = ?',
 
     //
     selectRoomByUsername: 'select * from plass_userroom where roomname = ? and username = ?',

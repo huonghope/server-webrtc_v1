@@ -49,6 +49,25 @@ router.get('/search', async function (req, res) {
     })
 })
 
+router.get('/joinroomcheck', async function (req, res) {
+    const { roomname } = req.query;
+    let [rows] = await db.query(sql.room.getRoomByRoomname, [roomname])
+    if(rows.length !== 0){
+        res.send({
+            result: false,
+            data: [],
+            message: '방이 존재하지 않습니다.'
+        })
+    }else{
+        res.send({
+            result: true,
+            data: [],
+            message: '미팅 접속 가능합니다'
+        })
+
+    }
+})
+
 //방의 host 출력함
 router.get('/gethostroom', async function (req, res) {
     const { roomname,username } = req.query;
