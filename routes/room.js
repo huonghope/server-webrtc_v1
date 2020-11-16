@@ -177,6 +177,7 @@ router.joinRoom = function (io) {
         }
 
         socket.on('new-message', (data) => {
+            console.log(data)
             // console.log('new-message', JSON.parse(data.payload))
             messages[room] = [...messages[room], JSON.parse(data.payload)]
         })
@@ -200,15 +201,22 @@ router.joinRoom = function (io) {
             disconnectedPeer(socketIDToDisconnect)
         })
 
+        //! Check 
         socket.on('onlinePeers', (data) => {
             const _connectedPeers = rooms[room]
-            for (const [socketID, _socket] of _connectedPeers.entries()) {
-                // don't send to self
-                if (socketID !== data.socketID.local) {
-                    console.log('online-peer', data.socketID, socketID)
-                    socket.emit('online-peer', socketID)
-                }
+            console.log("connect")
+            const [socketID, _socket] =  rooms[room].entries().next().value;
+            if (socketID !== data.socketID.local) {
+                console.log('online-peer', data.socketID, socketID)
+                socket.emit('online-peer', socketID) //자기는 다른 Sockeet를 Id를 보내 Peer 만듦
             }
+            // for (const [socketID, _socket] of _connectedPeers.entries()) {
+            //     // don't send to self
+            //     if (socketID !== data.socketID.local) {
+            //         console.log('online-peer', data.socketID, socketID)
+            //         socket.emit('online-peer', socketID) //자기는 다른 Sockeet를 Id를 보내 Peer 만듦
+            //     }
+            // }
         })
         socket.on('allmute', (data) => {
             const _connectedPeers = rooms[room]
