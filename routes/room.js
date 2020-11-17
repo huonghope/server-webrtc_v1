@@ -72,19 +72,30 @@ router.get('/joinroomcheck', async function (req, res) {
 router.get('/gethostroom', async function (req, res) {
     const { roomname,username } = req.query;
     let [row] = await db.query(sql.room.selectRoomByUsername, [roomname, username])
-    if(row.length === 1){
-        let [row] = await db.query(sql.room.getHostSocketIdByRoomname, [roomname])
-        res.send({
-            result: true,
-            data: row[0].socket_id,
-            message: '해당하는 유저는 '
-        })
-    }else{
-        res.send({
-            result: true,
-            data: [],
-            message: '해당하는 유저는 '
-        })
+    try {
+        if(row.length === 1){
+            let [row] = await db.query(sql.room.getHostSocketIdByRoomname, [roomname])
+            if(row.length === 1)
+                res.send({
+                    result: true,
+                    data: row[0].socket_id,
+                    message: '해당하는 유저는 '
+                })
+            else
+                res.send({
+                    result: true,
+                    data: [],
+                    message: '해당하는 유저는 '
+                })
+        }else{
+            res.send({
+                result: true,
+                data: [],
+                message: '해당하는 유저는 '
+            })
+        }
+    } catch (error) {
+        console.log(error)
     }
 })
 
@@ -233,9 +244,39 @@ router.joinRoom = function (io) {
             _socket.emit('request_question', data.socketID.local)
             
         })
+        
         socket.on('request_out', (data) => {
             const [socketID, _socket] =  rooms[room].entries().next().value;
             _socket.emit('request_out', data.socketID.local)
+        })
+
+        socket.on('action_user_warning', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, _socket] of _connectedPeers.entries()) {
+                // don't send to self
+                if (socketID === data.socketID.remoteSocketId) {
+                    _socket.emit('action_user_warning', socketID)
+                }
+            }
+        })
+
+        socket.on('action_user_disconnect', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, _socket] of _connectedPeers.entries()) {
+                // don't send to self
+                if (socketID === data.socketID.remoteSocketId) {
+                    _socket.emit('action_user_disconnect', socketID)
+                }
+            }
+        })
+        socket.on('action_user_disable_chatting', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, _socket] of _connectedPeers.entries()) {
+                // don't send to self
+                if (socketID === data.socketID.remoteSocketId) {
+                    _socket.emit('action_user_disable_chatting', socketID)
+                }
+            }
         })
 
         socket.on('action_user_request_cancel_out', (data) => {
