@@ -4,6 +4,30 @@ var uid = require('uid')
 var db = require('../modules/db-connection')
 var sql = require('../sql')
 
+var multer = require('multer'); 
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'update/') 
+    },
+    filename: function (req, file, cb) {
+        let extArray = file.mimetype.split("/");
+        let extension = extArray[extArray.length - 1];
+        cb(null, makeid(10) + "." + extension);
+    }
+})
+
+function makeid(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+// var upload = multer({storage});
+var upload = multer({ storage: storage });
+
 //!Socket로 수정 필요함
 router.get('/', async function (req, res) {
     const [rows] = await db.query(sql.room.getAllRoom)
@@ -69,16 +93,17 @@ router.get('/joinroomcheck', async function (req, res) {
 })
 
 //방의 host 출력함
-router.get('/gethostroom', async function (req, res) {
+router.get('/getlistuserbyroom', async function (req, res) {
     const { roomname,username } = req.query;
     let [row] = await db.query(sql.room.selectRoomByUsername, [roomname, username])
     try {
         if(row.length === 1){
-            let [row] = await db.query(sql.room.getHostSocketIdByRoomname, [roomname])
+            //host user name array value 0
+            let [rows] = await db.query(sql.room.getListUserByRoomname, [roomname])
             if(row.length === 1)
                 res.send({
                     result: true,
-                    data: row[0].socket_id,
+                    data: rows,
                     message: '해당하는 유저는 '
                 })
             else
@@ -98,7 +123,23 @@ router.get('/gethostroom', async function (req, res) {
         console.log(error)
     }
 })
-
+router.post('/upfile', upload.array('file'), async function(req, res) {
+    const files  = req.files || 'NULL';
+    var data = JSON.parse(req.body.params);
+    const { roomname } = data;
+    const _connectedPeers = rooms[roomname];
+    console.log(files)
+    //! Save file to data and request name
+    const {originalname, size, mimetype } = files[0];
+    for (const [socketID, _socket] of _connectedPeers.entries()) {
+        _socket.emit('upfile-in-chat', {
+            originalname: originalname,
+            size: size,
+            mimetype: mimetype,
+            fileHash: `files/${files[0].filename}`, 
+        })
+    }
+})
 var rooms = {}
 const messages = {}
 
@@ -188,7 +229,6 @@ router.joinRoom = function (io) {
         }
 
         socket.on('new-message', (data) => {
-            console.log(data)
             // console.log('new-message', JSON.parse(data.payload))
             messages[room] = [...messages[room], JSON.parse(data.payload)]
         })
@@ -239,15 +279,23 @@ router.joinRoom = function (io) {
             }
         })
 
+        //Request
         socket.on('request_question', (data) => {
             const [socketID, _socket] =  rooms[room].entries().next().value;
-            _socket.emit('request_question', data.socketID.local)
+            _socket.emit('request_question', {
+                remoteSocketId: data.socketID.local,
+                remoteUsername: username
+            })
             
         })
         
+        //Request
         socket.on('request_out', (data) => {
             const [socketID, _socket] =  rooms[room].entries().next().value;
-            _socket.emit('request_out', data.socketID.local)
+            _socket.emit('request_question', {
+                remoteSocketId: data.socketID.local,
+                remoteUserName: username
+            })
         })
 
         socket.on('action_user_warning', (data) => {
@@ -259,19 +307,10 @@ router.joinRoom = function (io) {
                 }
             }
         })
-
-        socket.on('action_user_disconnect', (data) => {
-            const _connectedPeers = rooms[room]
-            for (const [socketID, _socket] of _connectedPeers.entries()) {
-                // don't send to self
-                if (socketID === data.socketID.remoteSocketId) {
-                    _socket.emit('action_user_disconnect', socketID)
-                }
-            }
-        })
         socket.on('action_user_disable_chatting', (data) => {
             const _connectedPeers = rooms[room]
-            for (const [socketID, _socket] of _connectedPeers.entries()) {
+            for (const [socketID, _socket] of _connectedPeers.entries()) 
+            {
                 // don't send to self
                 if (socketID === data.socketID.remoteSocketId) {
                     _socket.emit('action_user_disable_chatting', socketID)
@@ -291,6 +330,7 @@ router.joinRoom = function (io) {
                     _socket.emit('action_host_chat', socketID)
                 }
             }
+
         })
 
         //host user button click event
@@ -320,7 +360,19 @@ router.joinRoom = function (io) {
                 }
             }
         })
-
+        
+        //모든 학생을 보냄, Host 제외함
+        socket.on('test-concentration', (data) => {
+            const _connectedPeers = rooms[room]
+            for (const [socketID, socket] of _connectedPeers.entries()) {
+                const [_socketID, _socket] =  rooms[room].entries().next().value
+                if (socketID !== _socketID) {
+                    socket.emit('test-concentration', {
+                        number : data.payload.number
+                    })
+                }
+            }
+        })
 
         socket.on('offer', data => {
             // console.log(data)
