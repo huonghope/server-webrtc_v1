@@ -30,6 +30,23 @@ function makeid(length) {
 // var upload = multer({storage});
 var upload = multer({ storage: storage });
 
+router.post('/upfile', upload.array('file'), async function(req, res) {
+    const files  = req.files || 'NULL';
+    var data = JSON.parse(req.body.params);
+    const { roomname } = data;
+    const _connectedPeers = rooms[roomname];
+    //! Save file to data and request name
+    const {originalname, size, mimetype } = files[0];
+    for (const [socketID, _socket] of _connectedPeers.entries()) {
+        _socket.emit('upfile-in-chat', {
+            originalname: originalname,
+            size: size,
+            mimetype: mimetype,
+            fileHash: `files/${files[0].filename}`, 
+        })
+    }
+})
+
 //!Socket로 수정 필요함
 router.get('/', async function (req, res) {
     const [rows] = await db.query(sql.room.getAllRoom)
@@ -123,22 +140,6 @@ router.get('/getlistuserbyroom', async function (req, res) {
         }
     } catch (error) {
         console.log(error)
-    }
-})
-router.post('/upfile', upload.array('file'), async function(req, res) {
-    const files  = req.files || 'NULL';
-    var data = JSON.parse(req.body.params);
-    const { roomname } = data;
-    const _connectedPeers = rooms[roomname];
-    //! Save file to data and request name
-    const {originalname, size, mimetype } = files[0];
-    for (const [socketID, _socket] of _connectedPeers.entries()) {
-        _socket.emit('upfile-in-chat', {
-            originalname: originalname,
-            size: size,
-            mimetype: mimetype,
-            fileHash: `files/${files[0].filename}`, 
-        })
     }
 })
 var rooms = {}
