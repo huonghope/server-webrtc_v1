@@ -12,7 +12,9 @@ var storage = multer.diskStorage({
     filename: function (req, file, cb) {
         let extArray = file.mimetype.split("/");
         let extension = extArray[extArray.length - 1];
-        cb(null, makeid(10) + "." + extension);
+        console.log(file)
+        // cb(null, makeid(10) + "." + extension);
+        cb(null, file.originalname);
     }
 })
 
@@ -128,7 +130,6 @@ router.post('/upfile', upload.array('file'), async function(req, res) {
     var data = JSON.parse(req.body.params);
     const { roomname } = data;
     const _connectedPeers = rooms[roomname];
-    console.log(files)
     //! Save file to data and request name
     const {originalname, size, mimetype } = files[0];
     for (const [socketID, _socket] of _connectedPeers.entries()) {
@@ -185,6 +186,7 @@ router.joinRoom = function (io) {
                 }
                 rooms[room].set(socket.id, socket);
             }
+
             socket.emit('connection-success', {
                 isHost: socket.id === rooms[room].entries().next().value[0],
                 success: socket.id,
@@ -255,19 +257,18 @@ router.joinRoom = function (io) {
         //! Check 
         socket.on('onlinePeers', (data) => {
             const _connectedPeers = rooms[room]
-            console.log("connect")
             const [socketID, _socket] =  rooms[room].entries().next().value;
-            if (socketID !== data.socketID.local) {
+            if (socketID !== data.socketID.local) { //normal user
                 console.log('online-peer', data.socketID, socketID)
                 socket.emit('online-peer', socketID) //자기는 다른 Sockeet를 Id를 보내 Peer 만듦
+            }else{ //host
+                for (const [__socketID, __socket] of _connectedPeers.entries()) {
+                    if (__socketID !== data.socketID.local) {
+                        console.log('online-peer', data.socketID.local, __socketID)
+                        socket.emit('online-peer', __socketID) //자기는 다른 Sockeet를 Id를 보내 Peer 만듦
+                    }
+                }
             }
-            // for (const [socketID, _socket] of _connectedPeers.entries()) {
-            //     // don't send to self
-            //     if (socketID !== data.socketID.local) {
-            //         console.log('online-peer', data.socketID, socketID)
-            //         socket.emit('online-peer', socketID) //자기는 다른 Sockeet를 Id를 보내 Peer 만듦
-            //     }
-            // }
         })
         socket.on('allmute', (data) => {
             const _connectedPeers = rooms[room]
