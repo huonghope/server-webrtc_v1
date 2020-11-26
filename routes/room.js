@@ -60,7 +60,6 @@ router.get('/', async function (req, res) {
 router.post('/createroom', async function (req, res) {
     const { roomname, username } = req.body;
     let [row] = await db.query(sql.room.getInformationRoomByAllName, [roomname, username])
-    console.log(row)
     if(row.length === 0)
     {
         // const id = uid(10);
