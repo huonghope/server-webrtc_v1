@@ -6,7 +6,7 @@ module.exports = {
     //SELECT
     getAllRoom : 'select * from plass_room',
     getInformationRoomByName: 'select * from plass_room where roomname = ? and username = ?',
-    getInformationRoomByAllName: 'select * from plass_room where roomname = ? and username = ?',
+    getInformationRoomByAllName: 'select * from plass_room where roomname = ?',
     getRoomsByUsername: 'select * from plass_room where username = ?',
     getListUserByRoomname: 'SELECT * FROM webrtc.plass_userroom where roomname = ? order by host_user DESC ;',
     getRoomByRoomname: 'select * from plass_room where roomname = ?',

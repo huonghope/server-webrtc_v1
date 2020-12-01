@@ -59,7 +59,7 @@ router.get('/', async function (req, res) {
 
 router.post('/createroom', async function (req, res) {
     const { roomname, username } = req.body;
-    let [row] = await db.query(sql.room.getInformationRoomByAllName, [roomname, username])
+    let [row] = await db.query(sql.room.getInformationRoomByAllName, [roomname])
     if(row.length === 0)
     {
         // const id = uid(10);
@@ -75,7 +75,7 @@ router.post('/createroom', async function (req, res) {
         res.send({
             result: false,
             data: [],
-            message: '해당하는 유저는 같은 룸이 중복됩니다.'
+            message: '생선된 룸이 중복되어서 생성할 수 없습니다.'
         })
     }
 })
@@ -374,6 +374,14 @@ router.joinRoom = function (io) {
                 }
             }
         })
+        // //모든 학생을 보냄, Host 제외함
+        // socket.on('test-concentration_fail', (data) => {
+        //     const [socketID, _socket] =  rooms[room].entries().next().value;
+        //     _socket.emit('test-concentration_fail', {
+        //         remoteSocketId: data.socketID.local,
+        //         remoteUserName: username
+        //     })
+        // })
 
         socket.on('offer', data => {
             // console.log(data)
