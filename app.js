@@ -24,6 +24,14 @@ app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
 app.use('/files', express.static('update', {fallthrough: false}),); 
 
+app.use(express.static(__dirname + '/build'))
+app.set('views', __dirname + '/build');
+
+
+app.get('/', (req, res, next) => { //default room
+  res.sendFile(__dirname + '/build/index.html')
+})
+
 
 //https://expressjs.com/en/guide/writing-middleware.html
 var indexRouter = require('./routes/index');
