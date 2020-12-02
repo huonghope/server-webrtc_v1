@@ -200,14 +200,6 @@ router.joinRoom = function (io) {
         checkRoom();
 
 
-        // connectedPeers.set(socket.id, socket)
-
-        // console.log(socket.id, room)
-     
-        // const broadcast = () => socket.broadcast.emit('joined-peers', {
-        //   peerCount: connectedPeers.size,
-        // })
-
         const broadcast = () => {
             const _connectedPeers = rooms[room]
             for (const [socketID, _socket] of _connectedPeers.entries()) {
