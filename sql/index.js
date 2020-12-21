@@ -1,3 +1,5 @@
 module.exports = {
-    room : require('./room.js')
+    room : require('./room.js'),
+    user : require('./user'),
+    lecture: require('./lecture')
 }

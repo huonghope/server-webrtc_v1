@@ -1,0 +1,119 @@
+const db = require("../../config/db-connection")
+const sql = require("../../../sql")
+
+const insertRoom = async (user_id, lec_id, room_name, redirect_id) => {
+  try {
+    const [row] = await db.query(sql.room.insertRoom, [user_id, lec_id, room_name,redirect_id])
+    if(row.length !== 0)
+      return getRoomById(row.insertId)
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+const insertUserRoom = async(user_idx, room_id, host_user) => {
+  try {
+    const [row] = await db.query(sql.room.insertUserRoom, [user_idx, room_id , host_user])
+    if(row.length !== 0)
+      return getUserRoomById(row.insertId)
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+const getNearestRoom = async(key) => {
+  try {
+    const [row] = await db.query(sql.room.getNearestRoomByRedirectId, [key])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+const getUserRoomById = async(id) => {
+  try {
+    const [row] = await db.query(sql.room.getUserRoomById, [id])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+const getRoomByRedirectKey = async(key) => {
+  try {
+    const [row] = await db.query(sql.room.getRoomByRedirectId, [key])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+const getRoomByRoomName = async(roomname) => {
+  try {
+    const [row] = await db.query(sql.room.getRoomByRoomName, [roomname])
+    if(row.length !== 0)
+      return row
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+const getRoomUserByUserName = async(username) => {
+  try {
+    const [row] = await db.query(sql.room.getRoomUserByUserName, [username])
+    if(row.length !== 0)
+      return row
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+const getRoomByLecIdxAndUserIdx = async(lec_idx, user_idx) => {
+  try {
+    const [row] = await db.query(sql.room.getRoomByLecIdxAndUserIdx, [lec_idx, user_idx])
+    if(row.length !== 0)
+      return row
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+const getRoomById = async(id) => {
+  try {
+    const [row] = await db.query(sql.room.getRoomById, [id])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const insertSocketId = async(socketId, user_id, room_id) => {
+  try {
+    const [row] = await db.query(sql.room.insertSocketIdToUserRoom, [socketId, user_id, room_id])
+    return row
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+module.exports = {
+  insertRoom,
+  getRoomUserByUserName,
+  insertUserRoom,
+  insertSocketId,
+  getRoomByRoomName,
+  getRoomByLecIdxAndUserIdx,
+  getRoomByRedirectKey,
+  getNearestRoom,
+  getUserRoomById
+}

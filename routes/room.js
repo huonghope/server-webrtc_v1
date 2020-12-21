@@ -1,7 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var uid = require('uid')
-var db = require('../modules/db-connection')
+var db = require('../src/config/db-connection')
 var sql = require('../sql')
 
 var multer = require('multer'); 
@@ -162,12 +162,12 @@ router.joinRoom = function (io) {
         // rooms[room] = rooms[room] && rooms[room].set(socket.id,socket) || (new Map()).set(socket.id, socket)
 
         const checkRoom = async () => {
+            //!Host
             let [row] = await db.query(sql.room.getInformationRoomByName, [room, username])
             if(row.length === 1) //host user
             {
                 let [row] = await db.query(sql.room.selectRoomByUsername, [room, username])
                 rooms[room] = new Map([[socket.id, socket], ...rooms[room]]);
-                // console.log(row)
                 if(row.length === 0)
                 {
                     await db.query(sql.room.insertRoomUser, [username, room, 1, socket.id])
@@ -175,8 +175,8 @@ router.joinRoom = function (io) {
                 }else if(row.length === 1) { //exists update by socket.id for host
                     await db.query(sql.room.updateSocketId, [socket.id, room, username])
                 }
-        
             }else{
+                //!User
                 let [row] = await db.query(sql.room.selectRoomByUsername, [room, username])
                 if(row.length === 0)
                 {
@@ -186,7 +186,7 @@ router.joinRoom = function (io) {
                 }
                 rooms[room].set(socket.id, socket);
             }
-
+            //!Host인지
             socket.emit('connection-success', {
                 isHost: socket.id === rooms[room].entries().next().value[0],
                 success: socket.id,
@@ -199,18 +199,15 @@ router.joinRoom = function (io) {
         // console.log(rooms)
         checkRoom();
 
-
-        const broadcast = () => {
-            const _connectedPeers = rooms[room]
-            for (const [socketID, _socket] of _connectedPeers.entries()) {
-                // if (socketID !== socket.id) {
-                _socket.emit('joined-peers', {
-                    peerCount: rooms[room].size, //connectedPeers.size,
-                })
-                // }
-            }
-        }
-        broadcast()
+        // const broadcast = () => {
+        //     const _connectedPeers = rooms[room]
+        //     for (const [socketID, _socket] of _connectedPeers.entries()) {
+        //         _socket.emit('joined-peers', {
+        //             peerCount: rooms[room].size, //connectedPeers.size,
+        //         })
+        //     }
+        // }
+        // broadcast()
 
         const disconnectedPeer = (socketID) => {
             const _connectedPeers = rooms[room]
@@ -285,7 +282,7 @@ router.joinRoom = function (io) {
         //Request
         socket.on('request_out', (data) => {
             const [socketID, _socket] =  rooms[room].entries().next().value;
-            _socket.emit('request_question', {
+            _socket.emit('request_out', {
                 remoteSocketId: data.socketID.local,
                 remoteUserName: username
             })
@@ -300,6 +297,8 @@ router.joinRoom = function (io) {
                 }
             }
         })
+
+        //!적요하는지 확인
         socket.on('action_user_disable_chatting', (data) => {
             const _connectedPeers = rooms[room]
             for (const [socketID, _socket] of _connectedPeers.entries()) 
