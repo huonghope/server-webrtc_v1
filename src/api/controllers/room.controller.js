@@ -208,7 +208,9 @@ const createRoom = async (req, res, next) => {
     }else if (user_tp === "S" && lectureInfo && redirectInfo){ 
       //학생인 경우에는
       //가장 최근에 해당하는 강의를 만들 강좌를 추가함
+      //!room는 강사의 정보임
       const room = await _RoomModel.getNearestRoom(redirectInfo.id)
+      console.log(redirectInfo)
       const userroom = await _RoomModel.insertUserRoom(user_idx, room.id, 0)
       return res.status(200).send({
         result: true,

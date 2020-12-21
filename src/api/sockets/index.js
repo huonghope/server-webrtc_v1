@@ -79,6 +79,7 @@ const initSockets = (io) => {
       const { roomId } = socket.handshake.query
       const { user_name, user_idx } = user
       const room = await getUserRoomById(roomId)
+      console.log(roomId)
       const { roomname, host_user } = room;
 
       if(user){

@@ -15,9 +15,6 @@ const handleJWT = (req, res, next, roles) => async (err, user, info) => {
     stack: error ? error.stack : undefined,
   });
 
-  console.log(error)
-  console.log(user)
-
   try {
     if (error || !user) throw error;
     await logIn(user, { session: false });

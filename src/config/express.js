@@ -31,6 +31,15 @@ var app = express();
 app.use('/files', express.static('update', {fallthrough: false}),); 
 
 
+app.use(express.static(__dirname + '/../../build'))
+app.set('views', __dirname + '/../../build');
+
+
+app.get('/', (req, res, next) => { //default room
+  res.sendFile(__dirname + '/../../build/index.html')
+})
+
+
 // Init server with socket.io and express app
 const options = {
   key: fs.readFileSync('key.pem'),
