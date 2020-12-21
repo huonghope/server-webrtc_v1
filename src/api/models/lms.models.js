@@ -22,7 +22,7 @@ const requestUserInfo = (userIdx, key) => new Promise(async (resolve, reject) =>
       method: 'get',
       qs: {
         TYPE: 'json',
-        KEY: key.toString(),
+        KEY: key,
         USER_IDX: userIdx
       },
       headers: {
@@ -54,7 +54,7 @@ const requestLectureInfo = (lec_idx, key) => new Promise(async (resolve, reject)
     method: 'get',
     qs: {
       TYPE: 'json',
-      KEY: key.toString(),
+      KEY: key,
       LEC_IDX: lec_idx
     },
     headers: {

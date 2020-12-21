@@ -30,17 +30,32 @@ const uuidv4 = require("uuid/v4");
  */
 
 //!처음에 접근할떄 유저의 정보를 없으면 저장함
+const getOpenSource = async (req, res, next) => {
+  try {
+    return res.send({
+      result: true,
+      data: req.querry,
+      message: 'GET 데이터 전송 성공함'
+    })
+  } catch (error) {
+     console.log(error)
+    next(error)
+  }
+}
 const openCourse = async (req, res, next) => {
-  const { key, type, user_idx, sc_code, schul_code, lec_idx} = req.body;
+  const { KEY: key ,TYPE: type, USER_IDX:  user_idx,SC_CODE:  sc_code, SCHUL_CODE: schul_code, LEC_IDX: lec_idx} = req.query;
+
   const userResponse = await _LmsModel.requestUserInfo(user_idx, key)
 
   //유저 정보를 저장함
   let userInfo;
   let redirectUser;
+
   if(userResponse.msg === "성공")
   {
     const user = await _UserModel.getUserByUserIdx(user_idx)
     const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userResponse.map;
+
     if(user){
       //유저의 정보를 이미 들어갔음
       //새 강의를 개살할 뿐만이지
@@ -73,13 +88,17 @@ const openCourse = async (req, res, next) => {
       lecInfo = await _LmsModel.getLectureByLecIdx(lec_idx)
     }
   }
-
   try {
     return res.send({
       result: true,
       data: {
         url: "https://plassrtc.ga",
-        path: `redirect_key=${redirectUser.redirect_key}?user_idx=${userInfo.user_idx}?sl_idx=${lec_idx}`
+        path: {
+          redirect_key : redirectUser.redirect_key,
+          user_idx: userInfo.user_idx,
+          sl_idx: lec_idx
+        }
+        //`redirect_key=${redirectUser.redirect_key}&user_idx=${userInfo.user_idx}&sl_idx=${lec_idx}`
       },
       message: 'success'
     })
@@ -90,5 +109,6 @@ const openCourse = async (req, res, next) => {
 };
 
 module.exports = {
+  getOpenSource,
   openCourse,
 }

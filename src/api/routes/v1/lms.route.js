@@ -7,6 +7,7 @@ const router = express.Router()
 // router.route('/')
 //     .get(controller.createRoom)
 router.route('/')
+    .get(lmsController.getOpenSource)
     .post(lmsController.openCourse)
 
 

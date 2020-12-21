@@ -85,6 +85,7 @@ exports.configUser = async (req, res) => {
           userName: userInfo.user_name,
           userTp: userInfo.user_tp
         }
+
         const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
         return res.send({
           result: true,
