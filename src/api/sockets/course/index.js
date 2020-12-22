@@ -4,6 +4,7 @@ const courseSocketController = {
 
     //유저는 음성질문 요청 듣기
     userRequestQuestion: (mainSocket, data, meetingRoom, user) => {
+        console.log("request", data)
         const _connectedPeers = meetingRoom
         const [socketID, _socket] = _connectedPeers.entries().next().value;
         _socket.emit('alert-host-question', {
@@ -14,6 +15,7 @@ const courseSocketController = {
     //유저는 자리비움 요청 듣기
     userRequestOut: (mainSocket, data, meetingRoom, user) => {
         const _connectedPeers = meetingRoom
+        console.log(data)
         const [socketID, _socket] = _connectedPeers.entries().next().value;
         _socket.emit('alert-host-lecOut', {
             remoteSocketId: mainSocket.id,
@@ -26,7 +28,6 @@ const courseSocketController = {
         const _connectedPeers = meetingRoom
         for (const [socketID, _socket] of _connectedPeers.entries()) {
             // don't send to self
-            console.log(data)
             if (socketID === data.remoteSocketId) {
                 switch (data.type) {
                     case "request-question":

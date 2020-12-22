@@ -1,6 +1,9 @@
 const chatSocketController = {
-  newMessage: (mainSocket, data, meetingRoomMap, user) => {
-    messages[room] = [...messages[room], JSON.parse(data.payload)]
+  sentMessage: (mainSocket, data, meetingRoomMap, user) => {
+      const _connectedPeers = meetingRoomMap
+      for (const [socketID, socket] of _connectedPeers.entries()) {
+        socket.emit('res-sent-message', data)
+      }
   },
   actionUserDisableChatting: (mainSocket, data, meetingRoomMap, user) => {
     const _connectedPeers = meetingRoomMap

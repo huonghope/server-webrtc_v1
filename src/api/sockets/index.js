@@ -79,8 +79,7 @@ const initSockets = (io) => {
       const { roomId } = socket.handshake.query
       const { user_name, user_idx } = user
       const room = await getUserRoomById(roomId)
-      console.log(roomId)
-      const { roomname, host_user } = room;
+      const { id, room_id, host_user } = room;
 
       if(user){
         //!insert socket to roomuser
@@ -127,7 +126,7 @@ const initSockets = (io) => {
     //       // messages: messages[room],
     //     })
     //   }
-    
+    let roomname = room_id;
     if(!meetingRoomMap[roomname]){
         meetingRoomMap[roomname] = new Map();
         meetingRoomMap[roomname].set(socket.id, socket)
@@ -176,8 +175,9 @@ const initSockets = (io) => {
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, meetingRoomMap[roomname], user))
 
       //chat component socket on handling
-      socket.on('new-message', (data) => chatSocketController.newMessage(socket, data, meetingRoomMap[roomname], user))
+      socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, meetingRoomMap[roomname], user))
       socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, meetingRoomMap[roomname], user))
+      // socket.on('sent-message', (data) => chatSocketController.sendMessage(socket, data, meetingRoomMap[roomname], user))
 
       //course component socket on handling
       socket.on('user-request-question', (data) => courseSocketController.userRequestQuestion(socket, data, meetingRoomMap[roomname], user))
@@ -202,4 +202,5 @@ const initSockets = (io) => {
     }
   })
 }
-module.exports = initSockets;
+// module.exports = meetingRoomMap;
+module.exports = { initSockets, meetingRoomMap };

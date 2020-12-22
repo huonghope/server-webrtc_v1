@@ -18,7 +18,7 @@ const routes = require('../api/routes/v1')
 const { logs } = require('./vars') 
 const strategy = require('./passport') //Only jwt-web-token
 const error = require('../api/middlewares/error')
-const initSockets = require('../api/sockets')
+const { initSockets } = require('../api/sockets')
 
 /**
 * Express instance

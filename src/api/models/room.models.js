@@ -115,5 +115,6 @@ module.exports = {
   getRoomByLecIdxAndUserIdx,
   getRoomByRedirectKey,
   getNearestRoom,
-  getUserRoomById
+  getUserRoomById,
+  getRoomById
 }

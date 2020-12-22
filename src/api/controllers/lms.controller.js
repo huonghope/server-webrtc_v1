@@ -55,7 +55,6 @@ const openCourse = async (req, res, next) => {
   {
     const user = await _UserModel.getUserByUserIdx(user_idx)
     const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userResponse.map;
-
     if(user){
       //유저의 정보를 이미 들어갔음
       //새 강의를 개살할 뿐만이지
@@ -89,19 +88,27 @@ const openCourse = async (req, res, next) => {
     }
   }
   try {
-    return res.send({
-      result: true,
-      data: {
-        url: "https://plassrtc.ga",
-        path: {
-          redirect_key : redirectUser.redirect_key,
-          user_idx: userInfo.user_idx,
-          sl_idx: lec_idx
-        }
-        //`redirect_key=${redirectUser.redirect_key}&user_idx=${userInfo.user_idx}&sl_idx=${lec_idx}`
-      },
-      message: 'success'
-    })
+    if(redirectUser){
+      return res.send({
+        result: true,
+        data: {
+          url: "https://plassrtc.ga",
+          path: {
+            redirect_key : redirectUser.redirect_key,
+            user_idx: userInfo.user_idx,
+            sl_idx: lec_idx
+          }
+          //`redirect_key=${redirectUser.redirect_key}&user_idx=${userInfo.user_idx}&sl_idx=${lec_idx}`
+        },
+        message: 'success'
+      })
+    }else{
+      return res.send({
+        result: false,
+        data: [],
+        message: '데이터 전달 실패. 전달 된 정보의 양식이 맞는 지 확인하세요'
+      })
+    }
   } catch (error) {
     console.log(error)
     next(error)

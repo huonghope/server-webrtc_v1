@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
 const { omit, isArguments } = require("lodash");
 const _ = require("lodash");
-const multer = require("multer");
 
 
 const fsExtra = require("fs-extra");
@@ -20,6 +19,7 @@ const moment = require("moment");
 const user = require('../../../sql/user');
 
 
+const { meetingRoomMap } = require ('../sockets')
 /**
  * Returns a formated object with tokens
  * @private
@@ -186,6 +186,26 @@ const joinRoom = async(req, res, next) =>
 
 }
 
+const upFile =  async(req, res, next) => {
+
+  const { user_idx, user_name } = req.user;
+  console.log(user_idx)
+  const files  = req.files || 'NULL';
+  var data = JSON.parse(req.body.params);
+  const { roomId } = data;
+  const _connectedPeers = meetingRoomMap[roomId];
+  const {originalname, size, mimetype } = files[0];
+  for (const [socketID, _socket] of _connectedPeers.entries()) {
+      _socket.emit('res-sent-files', {
+          senderId: user_idx, 
+          senderName: user_name,
+          originalname: originalname,
+          size: size,
+          mimetype: mimetype,
+          fileHash: `files/${files[0].filename}`, 
+      })
+  }
+}
 const createRoom = async (req, res, next) => {
   try {
     const { user_idx, user_tp  } = req.user;
@@ -232,6 +252,23 @@ const createRoom = async (req, res, next) => {
     next(error)
   }
 }
+//!refactor sql query
+const getLectureInfo = async (req, res, next) => {
+  const { userroom_id } = req.query
+  const { room_id } = await _RoomModel.getUserRoomById(userroom_id)
+  const { lec_idx } = await _RoomModel.getRoomById(room_id)
+  const lecInfo = await _LectureModel.getLectureByLecIdx(lec_idx)
+  try{
+    return res.status(200).send({
+      result: false,
+      data: lecInfo,
+      message: '해당하는 방의 강의 리스트'
+    })
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+}
 
 const iceServerList = async (req, res, next) => {
   ICETurnServer()
@@ -242,5 +279,7 @@ const iceServerList = async (req, res, next) => {
 module.exports = {
   getInfoRoom,
   createRoom,
-  iceServerList
+  iceServerList,
+  upFile,
+  getLectureInfo
 }
