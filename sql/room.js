@@ -16,9 +16,11 @@ module.exports = {
     getRoomUserByUserName: "select * from plass_userroom where username = ?",
     getRoomByRedirectId: "select * from plass_room where redirect_id = ?",
     getNearestRoomByRedirectId: "select * from plass_room where redirect_id = ? order by id desc LIMIT 1" ,
-    getListUserByRoomId: "select * from plass_userroom where room_id = ?",
+    getListUserByRoomId: "select ur.*,u.user_name,user_tp from plass_userroom as ur, plass_user as u where u.user_idx = ur.user_idx and ur.room_id = ?",
     selectUserRoomByIdAndUserId: "select * from plass_userroom where id = ? and user_idx = ?",
 
+
+    getUserRoomByRoomIdAndUserId: "select * from plass_userroom where room_id = ? and user_idx = ?",
 
     getRoomByLecIdxAndUserIdx: "select * from plass_room where lec_idx = ? and user_idx = ?",
     getUserRoomById: "select * from plass_userroom where id = ?",

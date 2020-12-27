@@ -86,6 +86,18 @@ const getRoomByLecIdxAndUserIdx = async(lec_idx, user_idx) => {
   }
 }
 
+const getUserRoomByRoomIdAndUserId = async(room_id, user_idx) => {
+  try {
+    const [row] = await db.query(sql.room.getUserRoomByRoomIdAndUserId, [room_id, user_idx])
+    console.log(row)
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
 const getRoomById = async(id) => {
   try {
     const [row] = await db.query(sql.room.getRoomById, [id])
@@ -116,5 +128,6 @@ module.exports = {
   getRoomByRedirectKey,
   getNearestRoom,
   getUserRoomById,
-  getRoomById
+  getRoomById,
+  getUserRoomByRoomIdAndUserId
 }

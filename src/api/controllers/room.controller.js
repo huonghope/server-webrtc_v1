@@ -124,23 +124,16 @@ const getInfoRoom = async(req, res, next) => {
     if(row.length === 1){
         //host user name array value 0
         let [rows] = await db.query(sql.room.getListUserByRoomId, [row[0].room_id])
-        if(row.length === 1)
-            res.send({
-                result: true,
-                data: rows,
-                message: '해당하는 유저는 '
-            })
-        else
-            res.send({
-                result: true,
-                data: [],
-                message: '해당하는 유저는 '
-            })
+        res.send({
+            result: true,
+            data: rows,
+            message: '해당하는 유저는 '
+        })
     }else{
         res.send({
             result: true,
             data: [],
-            message: '해당하는 유저는 '
+            message: '해당하는 유저는 방에 존재하지 않음'
         })
     }
   } catch (error) {
@@ -192,8 +185,9 @@ const upFile =  async(req, res, next) => {
   console.log(user_idx)
   const files  = req.files || 'NULL';
   var data = JSON.parse(req.body.params);
-  const { roomId } = data;
-  const _connectedPeers = meetingRoomMap[roomId];
+  const { userRoomId } = data;
+  const { room_id }  = await _RoomModel.getUserRoomById(userRoomId)
+  const _connectedPeers = meetingRoomMap[room_id];
   const {originalname, size, mimetype } = files[0];
   for (const [socketID, _socket] of _connectedPeers.entries()) {
       _socket.emit('res-sent-files', {
@@ -213,7 +207,10 @@ const createRoom = async (req, res, next) => {
     //강사인 경우에는 새로 방을 만들어짐
     const lectureInfo = await _LectureModel.getLectureByLecIdx(lec_idx)
     const redirectInfo = await _UserModel.getRedirectUserByKey(redirect_key, lec_idx)
+
+    //! 다시접근할떄 어떻게 예외처리 필요함
     if(user_tp === "T" && lectureInfo && redirectInfo){ 
+      //!3개 추가해야 함 - 컴퓨터 2개 및 모바일 1개
       //강사라면 방을 생성하고 User-room 추가함 
       const room = await _RoomModel.insertRoom(user_idx, lec_idx, lectureInfo.lecture_nm, redirectInfo.id)
       const userroom = await _RoomModel.insertUserRoom(user_idx, room.id, 1)
@@ -230,13 +227,16 @@ const createRoom = async (req, res, next) => {
       //가장 최근에 해당하는 강의를 만들 강좌를 추가함
       //!room는 강사의 정보임
       const room = await _RoomModel.getNearestRoom(redirectInfo.id)
-      console.log(redirectInfo)
-      const userroom = await _RoomModel.insertUserRoom(user_idx, room.id, 0)
+      let userRoom = await _RoomModel.getUserRoomByRoomIdAndUserId(room.id, user_idx)
+      if(!userRoom)
+      {
+        userRoom = await _RoomModel.insertUserRoom(user_idx, room.id, 0)
+      }
       return res.status(200).send({
         result: true,
         data:  { 
           room,
-          usr_id: userroom.id
+          usr_id: userRoom.id
         },
         message: '방을 참여 성공'
       })

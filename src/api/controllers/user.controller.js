@@ -12,6 +12,7 @@ const _RoomModel = require('../models/room.models')
 const _LectureModel = require('../models/lms.models')
 const { jwtExpirationInterval } = require("../../config/vars")
 const moment = require("moment");
+const { checkLectureAPI } = require('../models/helper.models');
 
 function generateTokenResponse(user, accessToken) {
   const tokenType = 'Bearer';
@@ -68,6 +69,7 @@ exports.configUser = async (req, res) => {
   try {
     const {redirect_key, sl_idx, user_idx } = req.query;
     let getRedirectUser = await _UserModel.getRedirectUserByLecIdxAndRedirectKey(sl_idx,redirect_key)
+    
     //전달 접근키 및 강의일변호 맞는지
     if(getRedirectUser)
     {
@@ -79,13 +81,13 @@ exports.configUser = async (req, res) => {
         userInfo = await _LectureModel.requestUserInfo(user_idx, app_key)
         const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userInfo.map;
         userInfo = await _UserModel.updateUser({USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM, APP_KEY: app_key})
-  
+        
         const userInfoToken = {
           userId: userInfo.user_idx,
           userName: userInfo.user_name,
           userTp: userInfo.user_tp
         }
-
+        
         const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
         return res.send({
           result: true,
@@ -97,21 +99,24 @@ exports.configUser = async (req, res) => {
         //학생은 처음에 접근할떄
         const hostUser = await _UserModel.getUserByUserIdx(getRedirectUser.user_idx);
         let userInfo = await _LectureModel.requestUserInfo(user_idx, hostUser.app_key);
-        const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userInfo.map;
-        userInfo = await _UserModel.insertUser({USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM, APP_KEY: hostUser.app_key})
-        if(userInfo){
-          const userInfoToken = {
-            userId: userInfo.user_idx,
-            userName: userInfo.user_name,
-            userTp: userInfo.user_tp
+        if(checkLectureAPI(userInfo)) //성공함
+        {
+          const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userInfo.map;
+          userInfo = await _UserModel.insertUser({USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM, APP_KEY: hostUser.app_key})
+          if(userInfo){
+            const userInfoToken = {
+              userId: userInfo.user_idx,
+              userName: userInfo.user_name,
+              userTp: userInfo.user_tp
+            }
+            const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
+        
+            return res.send({
+              result: true,
+              data: { token, userInfoToken },
+              message: '접근 권한 확인 성공'
+            })
           }
-          const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
-      
-          return res.send({
-            result: true,
-            data: { token, userInfoToken },
-            message: '접근 권한 확인 성공'
-          })
         }else{
           return res.send({
             result: false,
@@ -132,7 +137,6 @@ exports.configUser = async (req, res) => {
     next(error)
   }
 }
-
 
 
 exports.iceServerList = async (req, res, next) => {

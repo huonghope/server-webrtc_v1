@@ -175,13 +175,15 @@ const initSockets = (io) => {
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, meetingRoomMap[roomname], user))
 
       //chat component socket on handling
-      socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, meetingRoomMap[roomname], user))
+      socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, meetingRoomMap[roomname], user, room_id))
       socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, meetingRoomMap[roomname], user))
       // socket.on('sent-message', (data) => chatSocketController.sendMessage(socket, data, meetingRoomMap[roomname], user))
 
       //course component socket on handling
       socket.on('user-request-question', (data) => courseSocketController.userRequestQuestion(socket, data, meetingRoomMap[roomname], user))
+      socket.on('user-cancel-request-question', (data) => courseSocketController.userCancelRequestQuestion(socket, data, meetingRoomMap[roomname], user))
       socket.on('user-request-lecOut', (data) => courseSocketController.userRequestOut(socket, data, meetingRoomMap[roomname], user))
+      socket.on('user-cancel-request-lecOut', (data) => courseSocketController.userCancelRequestLecOut(socket, data, meetingRoomMap[roomname], user))
       socket.on('host-send-process-request', (data) => courseSocketController.actionForUserRequest(socket, data, meetingRoomMap[roomname], user))
       socket.on('host-send-warning', (data) => courseSocketController.actionWarningUser(socket, data, meetingRoomMap[roomname], user))
       socket.on('test-concentration', (data) => courseSocketController.testConcentration(socket, data, meetingRoomMap[roomname], user))
