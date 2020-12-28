@@ -187,7 +187,8 @@ const initSockets = (io) => {
       socket.on('user-cancel-request-lecOut', (data) => courseSocketController.userCancelRequestLecOut(socket, data, meetingRoomMap[roomname], user))
       socket.on('host-send-process-request', (data) => courseSocketController.actionForUserRequest(socket, data, meetingRoomMap[roomname], user))
       socket.on('host-send-warning', (data) => courseSocketController.actionWarningUser(socket, data, meetingRoomMap[roomname], user))
-      socket.on('test-concentration', (data) => courseSocketController.testConcentration(socket, data, meetingRoomMap[roomname], user))
+      socket.on('user-test-concentration', (data) => courseSocketController.testConcentration(socket, data, meetingRoomMap[roomname], user))
+      // socket.on('user-send-comeback-lec', (data) => courseSocketController.testConcentration(socket, data, meetingRoomMap[roomname], user))
       
       const disconnectedPeer = (socketID) => {
         const _connectedPeers = meetingRoomMap[roomname]

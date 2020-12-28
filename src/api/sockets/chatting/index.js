@@ -17,6 +17,19 @@ const chatSocketController = {
   //메시지 같이 전달함?
   actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, room_id) => {
     const { remoteSocketId, userId } = data
+    if(remoteSocketId === 'all'){
+      for (const [socketID, _socket] of _connectedPeers.entries()) 
+      {
+          let newMessage = {
+            username : user.user_name
+          }
+          if (socketID === mainSocket.socket_id) {
+              _socket.emit('action_user_disable_chat', socketID)
+              _socket.emit('alert_user_disable_chat', newMessage)
+          }
+      }
+      return
+    }
     const _connectedPeers = meetingRoomMap
     for (const [socketID, _socket] of _connectedPeers.entries()) 
     {

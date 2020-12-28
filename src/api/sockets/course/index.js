@@ -93,7 +93,18 @@ const courseSocketController = {
     //강사를 요청을 받아서 처리함
     //업데이트
     actionForUserRequest: async (mainSocket, data, meetingRoom, user) => {
-        const { userId, userRoomId, type, status, remoteSocketId } = data
+        let { userId, userRoomId, type, status, remoteSocketId } = data
+
+        console.log(userId, userRoomId, type, status, remoteSocketId)
+
+        //!refactory 해야암
+        //!일단
+        if(remoteSocketId === undefined){
+            const userRoom = await _RoomModel.selectUserRoomByIdAndUserId(userRoomId, user.user_idx)
+            const remoteUserRoom = await _RoomModel.getUserRoomByRoomIdAndUserId(userRoom.room_id, userId)
+            remoteSocketId = remoteUserRoom.socket_id
+        }
+
         const _connectedPeers = meetingRoom
 
         const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
@@ -104,7 +115,7 @@ const courseSocketController = {
             if (socketID === remoteSocketId) {
                 //학생한테 다시 알려줘야함
                 switch (type) {
-                    case "request-question":
+                    case "request_question":
                         const reqQuestionInfo = await _RequestModel.updateRequestQuestionNearest(userId, room_id, result)
                         //send 강사
                         mainSocket.emit('alert-host-process-req-question', {
@@ -116,7 +127,7 @@ const courseSocketController = {
                         _socket.emit('alert-user-process-req-question', result)
                         break;
 
-                    case "request-lecOut":
+                    case "request_lecOut":
                         const reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result)
                         // send to 강가
                         mainSocket.emit('alert-host-process-req-lecOut', {
@@ -154,9 +165,10 @@ const courseSocketController = {
         const _connectedPeers = meetingRoom
         for (const [socketID, socket] of _connectedPeers.entries()) {
             const [_socketID, _socket] = _connectedPeers.entries().next().value
+            console.log("집중테스트")
             if (socketID !== _socketID) {
                 socket.emit('alert-user-test-concentration', {
-                    number: data.payload.number
+                    number: data.number
                 })
             }
         }

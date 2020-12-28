@@ -287,7 +287,9 @@ const upTestConcentration = async (req, res, next) => {
     let chat = await _ChatModel.insertChat(user_idx, "", "test_Concentration", room_id)
     const test = await _TestModel.insertTestConcentration(user_idx, room_id, status, chat.id)
     chat.username = user_name
-    _socket.emit('alert-host-test-concentration-fail', chat)
+    if(!status){
+      _socket.emit('alert-host-test-concentration-fail', chat)
+    }
     return res.status(200).send({
       result: false,
       data: [],

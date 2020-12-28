@@ -21,7 +21,16 @@ const insertUserRoom = async(user_idx, room_id, host_user) => {
     console.log(error)    
   }
 }
-
+const selectUserRoomByIdAndUserId = async (userRoomId, userId) => {
+  try {
+    const [row] = await db.query(sql.room.selectUserRoomByIdAndUserId, [userRoomId, userId])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
 const getNearestRoom = async(key) => {
   try {
     const [row] = await db.query(sql.room.getNearestRoomByRedirectId, [key])
@@ -129,5 +138,6 @@ module.exports = {
   getNearestRoom,
   getUserRoomById,
   getRoomById,
-  getUserRoomByRoomIdAndUserId
+  getUserRoomByRoomIdAndUserId,
+  selectUserRoomByIdAndUserId
 }
