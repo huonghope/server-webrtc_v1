@@ -10,6 +10,16 @@ const insertChat = async (user_idx, message, type, room_id) => {
     console.log(error)
   }
 }
+const insertDisableChat = async (user_idx, room_id, status) => {
+  try {
+    const [row] = await db.query(sql.chat.insertDisableChat, [user_idx, room_id, status])
+    if(row.length !== 0)
+      return getChatById(row.insertId)
+  } catch (error) {
+    console.log(error) 
+  }
+}
+
 const getChatById = async (id) => {
   try {
     const [row] = await db.query(sql.chat.getChatById, [id])
@@ -22,5 +32,5 @@ const getChatById = async (id) => {
 
 module.exports = {
   insertChat,
-  
+  insertDisableChat,
 }

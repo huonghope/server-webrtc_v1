@@ -2,6 +2,7 @@ const _RequestModel = require('../../models/request.model')
 const _RoomModel = require('../../models/room.models')
 const _ChatModel = require('../../models/chat.models')
 const _UserModel = require('../../models/user.models')
+const _WarningModel = require('../../models/warning')
 
 
 //!강사한테만 socket를 구분해야됨
@@ -68,7 +69,7 @@ const courseSocketController = {
 
         chat.username = userInfo.user_name
         mainSocket.emit('alert-all-request-message', chat)
-        _socket.emit('alert-all-request-message', chat )
+        _socket.emit('alert-all-request-message', chat)
         //message에서 저장할 필요함 type == request_lecOut
         //!insert message
     },
@@ -133,25 +134,48 @@ const courseSocketController = {
         }
     },
     //유저를 경고함
-    actionWarningUser: (mainSocket, data, meetingRoom, user) => {
-        console.log("warning", data)
+    actionWarningUser: async (mainSocket, data, meetingRoom, user) => {
+        const { userId, remoteSocketId, userRoomId } = data
+        console.log(userId, remoteSocketId, userRoomId)
         const _connectedPeers = meetingRoom
         for (const [socketID, _socket] of _connectedPeers.entries()) {
-            if (socketID === data.remoteSocketId) {
-                _socket.emit('alert-user-warning', socketID)
+            if (socketID === remoteSocketId) {
+                const userInfo = await _UserModel.getUserByUserIdx(userId)
+                const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
+                let chat = await _ChatModel.insertChat(userId, "", "user-warning", room_id)
+                await _WarningModel.insertWarning(userId, room_id, chat.id)
+                chat.username = userInfo.user_name
+                _socket.emit('alert-user-warning', chat)
             }
         }
     },
+    //집중도 테스트
     testConcentration: (mainSocket, data, meetingRoom, user) => {
         const _connectedPeers = meetingRoom
         for (const [socketID, socket] of _connectedPeers.entries()) {
             const [_socketID, _socket] = _connectedPeers.entries().next().value
             if (socketID !== _socketID) {
-                socket.emit('test-concentration', {
+                socket.emit('alert-user-test-concentration', {
                     number: data.payload.number
                 })
             }
         }
-    }
+    },
+    // //집중도 테스트 실패
+    // testConcentrationFail: async (mainSocket, data, meetingRoom, user) => {
+    //     const { userRoomId } = data
+    //     const _connectedPeers = meetingRoom
+    //     console.log(userRoomId)
+    //     const { room_id }  = await _RoomModel.getUserRoomById(userRoomId)
+    //     let chat = await _ChatModel.insertChat(user.user_idx, "", "test_Concentration", room_id)
+
+    //     console.log(chat)
+    //     chat.username = user.user_name
+
+    //     //실패는 강사한테 알려줌
+    //     const [_socketID, _socket] = _connectedPeers.entries().next().value
+    //     _socket.emit('alert-host-test-concentration-fail', chat)
+        
+    // }
 }
 module.exports = courseSocketController

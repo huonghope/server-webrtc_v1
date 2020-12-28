@@ -14,6 +14,8 @@ const _UserModel = require("../models/user.models")
 const _RefreshToken = require("../models/refreshToken.model")
 const _RoomModel = require('../models/room.models')
 const _LectureModel = require('../models/lms.models')
+const _TestModel = require('../models/test_concentration')
+const _ChatModel = require('../models/chat.models')
 const { jwtExpirationInterval } = require("../../config/vars")
 const moment = require("moment");
 const user = require('../../../sql/user');
@@ -127,13 +129,13 @@ const getInfoRoom = async(req, res, next) => {
         res.send({
             result: true,
             data: rows,
-            message: '해당하는 유저는 '
+            message: '해당하는 유저의 방의 정보를 출력함'
         })
     }else{
         res.send({
             result: true,
             data: [],
-            message: '해당하는 유저는 방에 존재하지 않음'
+            message: '해당하는 유저의 방이 존재하지 않음'
         })
     }
   } catch (error) {
@@ -180,9 +182,7 @@ const joinRoom = async(req, res, next) =>
 }
 
 const upFile =  async(req, res, next) => {
-
   const { user_idx, user_name } = req.user;
-  console.log(user_idx)
   const files  = req.files || 'NULL';
   var data = JSON.parse(req.body.params);
   const { userRoomId } = data;
@@ -257,12 +257,41 @@ const getLectureInfo = async (req, res, next) => {
   const { userroom_id } = req.query
   const { room_id } = await _RoomModel.getUserRoomById(userroom_id)
   const { lec_idx } = await _RoomModel.getRoomById(room_id)
-  const lecInfo = await _LectureModel.getLectureByLecIdx(lec_idx)
-  try{
+  let lecInfo = await _LectureModel.getLectureByLecIdx(lec_idx)
+  if(room_id && lec_idx){
+    const { test_gap } = lecInfo
+    let convertTime = test_gap === "01" ? 10 : test_gap === "02" ? 20 : test_gap === "03" ? 30 : 40;
+    lecInfo = {...lecInfo, test_gap_time: convertTime}
+    try{
+      return res.status(200).send({
+        result: false,
+        data: lecInfo,
+        message: '해당하는 강죄릐 정보를 출력함'
+      })
+    } catch (error) {
+      console.log(error)
+      next(error)
+    }
+  }else{
+    console.log(error)
+    next(error)
+  }
+}
+const upTestConcentration = async (req, res, next) => {
+  try {
+    const { user_idx, user_name } = req.user;
+    const { userRoomId, status } = req.body;
+    const { room_id } = await _RoomModel.getUserRoomById(userRoomId) 
+    const _connectedPeers = meetingRoomMap[room_id];
+    const [_socketID, _socket] = _connectedPeers.entries().next().value
+    let chat = await _ChatModel.insertChat(user_idx, "", "test_Concentration", room_id)
+    const test = await _TestModel.insertTestConcentration(user_idx, room_id, status, chat.id)
+    chat.username = user_name
+    _socket.emit('alert-host-test-concentration-fail', chat)
     return res.status(200).send({
       result: false,
-      data: lecInfo,
-      message: '해당하는 방의 강의 리스트'
+      data: [],
+      message: '집중 테스트 입력 완료'
     })
   } catch (error) {
     console.log(error)
@@ -281,5 +310,6 @@ module.exports = {
   createRoom,
   iceServerList,
   upFile,
-  getLectureInfo
+  getLectureInfo,
+  upTestConcentration
 }

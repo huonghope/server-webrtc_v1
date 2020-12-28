@@ -18,13 +18,11 @@ const webRTCSocketController = {
         const [socketID, _socket] =  _connectedPeers.entries().next().value;
         // console.log(meetingRoomMap)
         // console.log("connect Peer", _connectedPeers)
-        console.log("check peer,",socketID, data.socketID.local, socketID !== data.socketID.local)
         if (socketID !== data.socketID.local) { //일단 유저
             console.log("i am user online peers", mainSocket.id)
             mainSocket.emit('online-peer', socketID) 
         }else{  //강사인 경우에는 다른 유저를 연결함
             for (const [__socketID, __socket] of _connectedPeers.entries()) {
-                console.log("hello",__socketID)
                 if (__socketID !== data.socketID.local) {
                     console.log("i am user props peers", mainSocket.id)
                     mainSocket.emit('online-peer', __socketID) 

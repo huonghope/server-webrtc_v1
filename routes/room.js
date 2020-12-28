@@ -162,8 +162,10 @@ router.joinRoom = function (io) {
         // rooms[room] = rooms[room] && rooms[room].set(socket.id,socket) || (new Map()).set(socket.id, socket)
 
         const checkRoom = async () => {
+            
             //!Host
             let [row] = await db.query(sql.room.getInformationRoomByName, [room, username])
+
             if(row.length === 1) //host user
             {
                 let [row] = await db.query(sql.room.selectRoomByUsername, [room, username])

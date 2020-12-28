@@ -1,4 +1,5 @@
 const _ChatModel = require('../../models/chat.models')
+const _UserModel = require('../../models/user.models')
 
 const chatSocketController = {
   //!데이티 베이스에다가 저장할 필요함
@@ -13,12 +14,18 @@ const chatSocketController = {
         socket.emit('res-sent-message', data)
       }
   },
-  actionUserDisableChatting: (mainSocket, data, meetingRoomMap, user) => {
+  //메시지 같이 전달함?
+  actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, room_id) => {
+    const { remoteSocketId, userId } = data
     const _connectedPeers = meetingRoomMap
     for (const [socketID, _socket] of _connectedPeers.entries()) 
     {
-        if (socketID === data.socketID.remoteSocketId) {
-            _socket.emit('action_user_disable_chatting', socketID)
+        if (socketID === remoteSocketId) {
+            let newMessage = await _ChatModel.insertChat(userId, "", "disable-chat",room_id)
+            let userInfo = await _UserModel.getUserByUserIdx(userId)
+            newMessage.username = userInfo.user_name
+            _socket.emit('action_user_disable_chat', socketID)
+            _socket.emit('alert_user_disable_chat', newMessage)
         }
     }
   },

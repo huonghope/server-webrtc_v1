@@ -36,6 +36,8 @@ router.route('/upfile')
 router.route('/lecture')
     .get(authorize(LOGGED_USER), roomController.getLectureInfo)
 
+router.route('/test-concentration-fail')
+    .post(authorize(LOGGED_USER), roomController.upTestConcentration)
 // router.route('/join')   
 //     .put(authorize(LOGGED_USER), roomController.joinRoom)
 

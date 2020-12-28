@@ -83,7 +83,6 @@ const initSockets = (io) => {
 
       if(user){
         //!insert socket to roomuser
-        console.log(socket.id, user_idx, room.room_id)
         await insertSocketIdToUserRoom(socket.id, user_idx, room.room_id)
       }
 
@@ -177,6 +176,8 @@ const initSockets = (io) => {
       //chat component socket on handling
       socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, meetingRoomMap[roomname], user, room_id))
       socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, meetingRoomMap[roomname], user))
+      socket.on('host-req-user-disable-chat', (data) => chatSocketController.actionUserDisableChatting(socket, data, meetingRoomMap[roomname], user, room_id))
+      socket.on('host-req-user-enable-chat', (data) => chatSocketController.actionUserEnableChatting(socket, data, meetingRoomMap[roomname], user, room_id))
       // socket.on('sent-message', (data) => chatSocketController.sendMessage(socket, data, meetingRoomMap[roomname], user))
 
       //course component socket on handling
@@ -188,7 +189,6 @@ const initSockets = (io) => {
       socket.on('host-send-warning', (data) => courseSocketController.actionWarningUser(socket, data, meetingRoomMap[roomname], user))
       socket.on('test-concentration', (data) => courseSocketController.testConcentration(socket, data, meetingRoomMap[roomname], user))
       
-
       const disconnectedPeer = (socketID) => {
         const _connectedPeers = meetingRoomMap[roomname]
         for (const [_socketID, _socket] of _connectedPeers.entries()) {
