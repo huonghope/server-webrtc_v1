@@ -189,15 +189,28 @@ const upFile =  async(req, res, next) => {
   const { room_id }  = await _RoomModel.getUserRoomById(userRoomId)
   const _connectedPeers = meetingRoomMap[room_id];
   const {originalname, size, mimetype } = files[0];
+
+  let newMessage = await _ChatModel.insertChat(user_idx, "", "file", room_id)
+  let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+
+  resMessage.sender.username = user_name
+  resMessage.data.file = {
+    originalname: originalname,
+    size: size,
+    mimetype: mimetype,
+    fileHash: `files/${files[0].filename}`,
+  }
+
+  //insert chat
+  //!refactory
   for (const [socketID, _socket] of _connectedPeers.entries()) {
-      _socket.emit('res-sent-files', {
-          senderId: user_idx, 
-          senderName: user_name,
-          originalname: originalname,
-          size: size,
-          mimetype: mimetype,
-          fileHash: `files/${files[0].filename}`, 
-      })
+      // _socket.emit('res-sent-files', {
+      //     originalname: originalname,
+      //     size: size,
+      //     mimetype: mimetype,
+      //     fileHash: `files/${files[0].filename}`, 
+      // })
+    _socket.emit('res-sent-files', resMessage)
   }
 }
 const createRoom = async (req, res, next) => {
@@ -243,7 +256,7 @@ const createRoom = async (req, res, next) => {
     }else{
       return res.status(200).send({
         result: false,
-        data: room,
+        data: [],
         message: '강죄를 존재하지 않으니 방 생성 오류'
       })
     }

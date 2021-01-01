@@ -29,8 +29,32 @@ const getChatById = async (id) => {
     console.log(error)
   }
 }
+const convertResponseMessage = async (message) => {
+  try {
+    if(message)
+    {
+      let resultMessage = {
+        type: message.type,
+        data: {
+          id: message.id,
+          message: message.message,
+          roomId: message.room_id,
+          timestamp: message.timestamp
+        }, 
+        sender: {
+          uid: message.user_idx
+        }
+      }    
+
+      return resultMessage;
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 module.exports = {
   insertChat,
   insertDisableChat,
+  convertResponseMessage,
 }

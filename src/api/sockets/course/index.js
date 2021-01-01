@@ -8,7 +8,6 @@ const _WarningModel = require('../../models/warning')
 //!강사한테만 socket를 구분해야됨
 //!일단 요청이 들어가면 요청정보를 저장하고 강사는 어떻게 처리함에 따라 디비를 업데이트
 const courseSocketController = {
-
     //유저는 음성질문 요청 듣기
     //학생 및 유저한테 알려줌
     //상태 체크함 새로 요청이든니 요청했던거
@@ -28,12 +27,16 @@ const courseSocketController = {
 
         //message에서 저장할 필요함 type == request_question
         //!insert message
-        let chat = await _ChatModel.insertChat(user.user_idx, "", "request_question", room_id)
+        let newMessage = await _ChatModel.insertChat(user.user_idx, "", "request_question", room_id)
         let userInfo = await _UserModel.getUserByUserIdx(user.user_idx)
 
-        chat.username = userInfo.user_name
-        mainSocket.emit('alert-all-request-message', chat)
-        _socket.emit('alert-all-request-message', chat )
+        let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+        resMessage.sender.username = userInfo.user_name
+        
+        // chat.username = userInfo.user_name
+        //! refactory
+        mainSocket.emit('alert-all-request-message', resMessage)
+        _socket.emit('alert-all-request-message', resMessage )
     },
     userCancelRequestQuestion: async (mainSocket, data, meetingRoom, user) => {
         const { status } = data
@@ -64,12 +67,14 @@ const courseSocketController = {
             userInfo: user,
         })
 
-        let chat = await _ChatModel.insertChat(user.user_idx, "", "request_lecOut", room_id)
+        let newMessage = await _ChatModel.insertChat(user.user_idx, "", "request_lecOut", room_id)
         let userInfo = await _UserModel.getUserByUserIdx(user.user_idx)
 
-        chat.username = userInfo.user_name
-        mainSocket.emit('alert-all-request-message', chat)
-        _socket.emit('alert-all-request-message', chat)
+        let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+        resMessage.sender.username = userInfo.user_name
+        // chat.username = userInfo.user_name
+        mainSocket.emit('alert-all-request-message', resMessage)
+        _socket.emit('alert-all-request-message', resMessage)
         //message에서 저장할 필요함 type == request_lecOut
         //!insert message
     },
@@ -96,7 +101,6 @@ const courseSocketController = {
         let { userId, userRoomId, type, status, remoteSocketId } = data
 
         console.log(userId, userRoomId, type, status, remoteSocketId)
-
         //!refactory 해야암
         //!일단
         if(remoteSocketId === undefined){
@@ -145,6 +149,7 @@ const courseSocketController = {
         }
     },
     //유저를 경고함
+    //!메시지 확인할 필요함
     actionWarningUser: async (mainSocket, data, meetingRoom, user) => {
         const { userId, remoteSocketId, userRoomId } = data
         console.log(userId, remoteSocketId, userRoomId)
@@ -153,10 +158,18 @@ const courseSocketController = {
             if (socketID === remoteSocketId) {
                 const userInfo = await _UserModel.getUserByUserIdx(userId)
                 const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
-                let chat = await _ChatModel.insertChat(userId, "", "user-warning", room_id)
-                await _WarningModel.insertWarning(userId, room_id, chat.id)
-                chat.username = userInfo.user_name
-                _socket.emit('alert-user-warning', chat)
+                let newMessage = await _ChatModel.insertChat(userId, "", "user-warning", room_id)
+                await _WarningModel.insertWarning(userId, room_id, newMessage.id)
+
+                //let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+                //resMessage.sender.username = userInfo.user_name
+                
+                
+                let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+                resMessage.sender.username = userInfo.user_name
+
+                console.log(resMessage)
+                _socket.emit('alert-user-warning', resMessage)
             }
         }
     },
@@ -165,7 +178,6 @@ const courseSocketController = {
         const _connectedPeers = meetingRoom
         for (const [socketID, socket] of _connectedPeers.entries()) {
             const [_socketID, _socket] = _connectedPeers.entries().next().value
-            console.log("집중테스트")
             if (socketID !== _socketID) {
                 socket.emit('alert-user-test-concentration', {
                     number: data.number

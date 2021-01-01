@@ -8,22 +8,26 @@ const chatSocketController = {
       let { uid } = data.message.sender;
       let { text: message } = data.message.data;
       const newMessage = await _ChatModel.insertChat(uid, message, type, room_id )
-      data.message.data.timestamp = newMessage.timestamp
       const _connectedPeers = meetingRoomMap
-      for (const [socketID, socket] of _connectedPeers.entries()) {
-        socket.emit('res-sent-message', data)
+
+      let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+      resMessage.sender.username = user.user_name
+      for (let [socketID, socket] of _connectedPeers.entries()) {
+        socket.emit('res-sent-message', resMessage)
       }
   },
   //메시지 같이 전달함?
   actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, room_id) => {
     const { remoteSocketId, userId } = data
+
+    //!메시지 전체 학생이 보냄 필요함
     if(remoteSocketId === 'all'){
       for (const [socketID, _socket] of _connectedPeers.entries()) 
       {
           let newMessage = {
             username : user.user_name
           }
-          if (socketID === mainSocket.socket_id) {
+          if (socketID !== mainSocket.socket_id) {
               _socket.emit('action_user_disable_chat', socketID)
               _socket.emit('alert_user_disable_chat', newMessage)
           }
@@ -33,12 +37,15 @@ const chatSocketController = {
     const _connectedPeers = meetingRoomMap
     for (const [socketID, _socket] of _connectedPeers.entries()) 
     {
+        //!다시 확인할 필요함
         if (socketID === remoteSocketId) {
             let newMessage = await _ChatModel.insertChat(userId, "", "disable-chat",room_id)
+            let resMessage = await _ChatModel.convertResponseMessage(newMessage)
             let userInfo = await _UserModel.getUserByUserIdx(userId)
-            newMessage.username = userInfo.user_name
+            resMessage.sender.username = userInfo.user_name
+            // newMessage.username = userInfo.user_name
             _socket.emit('action_user_disable_chat', socketID)
-            _socket.emit('alert_user_disable_chat', newMessage)
+            _socket.emit('alert_user_disable_chat', resMessage)
         }
     }
   },
