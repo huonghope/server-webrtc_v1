@@ -1,6 +1,15 @@
 const _ChatModel = require('../../models/chat.models')
 const _UserModel = require('../../models/user.models')
-
+const _RoomModel = require('../../models/room.models')
+const { checkHostBySocketId } = require('../../models/helper.models')
+/**
+ * 채팅방식
+ * - 강사 ~ 모든 학생
+ * - 학생 ~ 강사만
+ * ! 강사를 보내면 모든학생한테 노출
+ * ! 학생이 강사만 노출
+ * => 유저기리를 정해함
+ */
 const chatSocketController = {
   //!데이티 베이스에다가 저장할 필요함
   sentMessage:  async (mainSocket, data, meetingRoomMap, user, room_id) => {
@@ -12,29 +21,38 @@ const chatSocketController = {
 
       let resMessage = await _ChatModel.convertResponseMessage(newMessage)
       resMessage.sender.username = user.user_name
-      for (let [socketID, socket] of _connectedPeers.entries()) {
-        socket.emit('res-sent-message', resMessage)
+
+      if(checkHostBySocketId(_connectedPeers, mainSocket.id)){
+        for (let [socketID, socket] of _connectedPeers.entries()) {
+          socket.emit('res-sent-message', resMessage)
+        }
+      }else{
+        const [_socketID, _socket] =  _connectedPeers.entries().next().value
+        mainSocket.emit('res-sent-message', resMessage)
+        _socket.emit('res-sent-message', resMessage)
       }
   },
   //메시지 같이 전달함?
   actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, room_id) => {
     const { remoteSocketId, userId } = data
-
+    const _connectedPeers = meetingRoomMap
     //!메시지 전체 학생이 보냄 필요함
     if(remoteSocketId === 'all'){
       for (const [socketID, _socket] of _connectedPeers.entries()) 
       {
-          let newMessage = {
-            username : user.user_name
-          }
-          if (socketID !== mainSocket.socket_id) {
-              _socket.emit('action_user_disable_chat', socketID)
-              _socket.emit('alert_user_disable_chat', newMessage)
+          //모든 학생이 채팅을 금지
+          if (socketID !== mainSocket.id) {
+            let { user_idx } = await _RoomModel.getUseRoomBySocketId(socketID)
+            let newMessage = await _ChatModel.insertChat(user_idx, "", "disable-chat",room_id)
+            let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+            let userInfo = await _UserModel.getUserByUserIdx(user_idx)
+            resMessage.sender.username = userInfo.user_name
+            _socket.emit('action_user_disable_chat', socketID)
+            _socket.emit('alert_user_disable_chat', resMessage)
           }
       }
       return
     }
-    const _connectedPeers = meetingRoomMap
     for (const [socketID, _socket] of _connectedPeers.entries()) 
     {
         //!다시 확인할 필요함

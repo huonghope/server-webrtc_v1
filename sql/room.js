@@ -18,6 +18,7 @@ module.exports = {
     getNearestRoomByRedirectId: "select * from plass_room where redirect_id = ? order by id desc LIMIT 1" ,
     getListUserByRoomId: "select ur.*,u.user_name,user_tp from plass_userroom as ur, plass_user as u where u.user_idx = ur.user_idx and ur.room_id = ?",
     selectUserRoomByIdAndUserId: "select * from plass_userroom where id = ? and user_idx = ?",
+    getHostUserRoomInfo: "select * from plass_userroom where room_id = ? and host_user = 1",
 
 
     getUserRoomByRoomIdAndUserId: "select * from plass_userroom where room_id = ? and user_idx = ?",
@@ -26,6 +27,7 @@ module.exports = {
     getUserRoomById: "select * from plass_userroom where id = ?",
     //
     selectRoomByUsername: 'select * from plass_userroom where roomname = ? and username = ?',
+    getUseRoomBySocketId: 'select * from plass_userroom where socket_id',
 
 
     //where update socket.is-disabled

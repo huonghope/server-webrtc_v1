@@ -38,7 +38,7 @@ const getOpenSource = async (req, res, next) => {
       message: 'GET 데이터 전송 성공함'
     })
   } catch (error) {
-     console.log(error)
+    console.log(error)
     next(error)
   }
 }

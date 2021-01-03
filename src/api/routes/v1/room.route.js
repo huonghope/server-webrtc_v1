@@ -12,7 +12,6 @@ var storage = multer.diskStorage({
     filename: function (req, file, cb) {
         let extArray = file.mimetype.split("/");
         let extension = extArray[extArray.length - 1];
-        console.log(file)
         // cb(null, makeid(10) + "." + extension);
         cb(null, file.originalname);
     }

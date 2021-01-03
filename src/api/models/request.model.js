@@ -39,6 +39,16 @@ const updateRequestLecOutNearest = async (user_idx, room_id, status) => {
   }
 }
 
+//끝나상태를 제외함
+const getListUserLecOut = async(room_id) => {
+  try {
+    const [row] = await db.query(sql.request.getListUserLecOut, [room_id])
+    return row
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 //Get DATA
 const getRequestLecOutById = async (id) => {
   try {
@@ -81,5 +91,6 @@ module.exports = {
   insertRequestQuestion,
   updateRequestQuestionNearest,
   insertRequestLecOut,
-  updateRequestLecOutNearest
+  updateRequestLecOutNearest,
+  getListUserLecOut
 }

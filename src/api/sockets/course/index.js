@@ -133,11 +133,14 @@ const courseSocketController = {
 
                     case "request_lecOut":
                         const reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result)
+
+                        const listUserOut = await _RequestModel.getListUserLecOut(room_id)
                         // send to 강가
                         mainSocket.emit('alert-host-process-req-lecOut', {
                             type: type,
                             data: {...reqLecOutInfo, userInfo},
-                            remoteSocketId: remoteSocketId
+                            remoteSocketId: remoteSocketId,
+                            listUserOut: listUserOut
                         })
                         //sent to 학생
                         _socket.emit('alert-user-process-req-lecOut', result)

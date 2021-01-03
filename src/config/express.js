@@ -28,7 +28,7 @@ require('dotenv').config();
 var app = express();
 
 // static folder
-app.use('/files', express.static('update', {fallthrough: false}),); 
+app.use('/api/files', express.static('update', {fallthrough: false}),); 
 
 app.use(express.static(__dirname + '/../../build'))
 app.set('views', __dirname + '/../../build');

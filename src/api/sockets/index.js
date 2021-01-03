@@ -206,4 +206,4 @@ const initSockets = (io) => {
   })
 }
 // module.exports = meetingRoomMap;
-module.exports = { initSockets, meetingRoomMap };
+module.exports = { initSockets, meetingRoomMap};

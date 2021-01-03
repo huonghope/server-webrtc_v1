@@ -62,6 +62,16 @@ const getRoomByRedirectKey = async(key) => {
     console.log(error)    
   }
 }
+const getHostUserRoomInfo = async(room_id) => {
+  try {
+    const [row] = await db.query(sql.room.getHostUserRoomInfo, [room_id])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
 const getRoomByRoomName = async(roomname) => {
   try {
     const [row] = await db.query(sql.room.getRoomByRoomName, [roomname])
@@ -126,7 +136,24 @@ const insertSocketId = async(socketId, user_id, room_id) => {
     console.log(error)
   }
 }
-
+const getListUserByRoomId = async(room_id) => {
+  try {
+    const [row] = await db.query(sql.room.getListUserByRoomId, [room_id])
+    return row
+  } catch (error) {
+    console.log(error)
+  }
+}
+const getUseRoomBySocketId = async(socketId) => {
+  try {
+    const [row] = await db.query(sql.room.getUseRoomBySocketId, [socketId])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)
+  }
+}
 module.exports = {
   insertRoom,
   getRoomUserByUserName,
@@ -139,5 +166,7 @@ module.exports = {
   getUserRoomById,
   getRoomById,
   getUserRoomByRoomIdAndUserId,
-  selectUserRoomByIdAndUserId
+  selectUserRoomByIdAndUserId,
+  getUseRoomBySocketId,
+  getHostUserRoomInfo
 }

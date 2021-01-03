@@ -19,7 +19,7 @@ const _ChatModel = require('../models/chat.models')
 const { jwtExpirationInterval } = require("../../config/vars")
 const moment = require("moment");
 const user = require('../../../sql/user');
-
+const { checkHostBySocketId } = require("../models/helper.models")
 
 const { meetingRoomMap } = require ('../sockets')
 /**
@@ -186,31 +186,36 @@ const upFile =  async(req, res, next) => {
   const files  = req.files || 'NULL';
   var data = JSON.parse(req.body.params);
   const { userRoomId } = data;
-  const { room_id }  = await _RoomModel.getUserRoomById(userRoomId)
+  const { room_id, socket_id }  = await _RoomModel.getUserRoomById(userRoomId)
   const _connectedPeers = meetingRoomMap[room_id];
+  
   const {originalname, size, mimetype } = files[0];
+  let FileInfo = await _ChatModel.insertUpFile(originalname,`files/${files[0].filename}`, room_id, user_idx, size, mimetype  )
 
-  let newMessage = await _ChatModel.insertChat(user_idx, "", "file", room_id)
+  let newMessage = await _ChatModel.insertChatFile(user_idx, "", "file", room_id, FileInfo.id)
   let resMessage = await _ChatModel.convertResponseMessage(newMessage)
 
   resMessage.sender.username = user_name
   resMessage.data.file = {
+    id: FileInfo.id,
     originalname: originalname,
     size: size,
     mimetype: mimetype,
     fileHash: `files/${files[0].filename}`,
-  }
+  } 
 
-  //insert chat
-  //!refactory
-  for (const [socketID, _socket] of _connectedPeers.entries()) {
-      // _socket.emit('res-sent-files', {
-      //     originalname: originalname,
-      //     size: size,
-      //     mimetype: mimetype,
-      //     fileHash: `files/${files[0].filename}`, 
-      // })
-    _socket.emit('res-sent-files', resMessage)
+  if(checkHostBySocketId(_connectedPeers, socket_id)){
+    for (let [socketID, socket] of _connectedPeers.entries()) {
+      socket.emit('res-sent-message', resMessage)
+    }
+  }else{
+    const [_socketID, _socket] =  _connectedPeers.entries().next().value
+    _socket.emit('res-sent-message', resMessage)
+    for (let [socketID, socket] of _connectedPeers.entries()) {
+      if(socketID === socket_id){
+        socket.emit('res-sent-message', resMessage)
+      }
+    }
   }
 }
 const createRoom = async (req, res, next) => {

@@ -6,6 +6,16 @@ const checkLectureAPI = (response) => {
     return false
 }
 
+const checkHostBySocketId = (socketArray, socketId) => {
+  if(socketArray && socketArray.length !== 0){
+    //result first socket array
+    let result = socketId === socketArray.entries().next().value[0];
+    return result;
+  }else
+    return false
+}
+
 module.exports = {
-  checkLectureAPI
+  checkLectureAPI,
+  checkHostBySocketId
 }
