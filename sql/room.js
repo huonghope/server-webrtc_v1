@@ -27,7 +27,7 @@ module.exports = {
     getUserRoomById: "select * from plass_userroom where id = ?",
     //
     selectRoomByUsername: 'select * from plass_userroom where roomname = ? and username = ?',
-    getUseRoomBySocketId: 'select * from plass_userroom where socket_id',
+    getUseRoomBySocketId: 'select * from plass_userroom where socket_id = ?',
 
 
     //where update socket.is-disabled

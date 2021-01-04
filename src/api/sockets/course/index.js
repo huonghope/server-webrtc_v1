@@ -14,7 +14,7 @@ const courseSocketController = {
     userRequestQuestion: async (mainSocket, data, meetingRoom, user) => {
         const { status } = data
         const { room_id } = await _RoomModel.getUserRoomById(data.userRoomId)
-        await _RequestModel.insertRequestQuestion(user.user_idx, room_id, 'waiting')
+        let reqInfo = await _RequestModel.insertRequestQuestion(user.user_idx, room_id, 'waiting')
         const _connectedPeers = meetingRoom
 
         //강사한테 요청한 학생이 있음
@@ -22,7 +22,7 @@ const courseSocketController = {
         _socket.emit('alert-host-question', {
             status: status,
             remoteSocketId: mainSocket.id,
-            userInfo: user,
+            reqInfo: reqInfo
         })
 
         //message에서 저장할 필요함 type == request_question
@@ -38,17 +38,18 @@ const courseSocketController = {
         mainSocket.emit('alert-all-request-message', resMessage)
         _socket.emit('alert-all-request-message', resMessage )
     },
+    //!요청하다가 취소
     userCancelRequestQuestion: async (mainSocket, data, meetingRoom, user) => {
         const { status } = data
         const _connectedPeers = meetingRoom
         const { room_id } = await _RoomModel.getUserRoomById(data.userRoomId)
         const [socketID, _socket] = _connectedPeers.entries().next().value;
 
-        await _RequestModel.updateRequestQuestionNearest(user.user_idx, room_id, false)
+        let reqInfo = await _RequestModel.updateRequestQuestionNearest(user.user_idx, room_id, false)
         _socket.emit('alert-host-question', {
             status: status,
             remoteSocketId: mainSocket.id,
-            userInfo: user,
+            reqInfo: reqInfo
         })
     },
     //유저는 자리비움 요청 듣기
@@ -56,7 +57,7 @@ const courseSocketController = {
         const { status } = data
         const { room_id } = await _RoomModel.getUserRoomById(data.userRoomId)
 
-        await _RequestModel.insertRequestLecOut(user.user_idx, room_id, 'waiting')
+        let reqInfo = await _RequestModel.insertRequestLecOut(user.user_idx, room_id, 'waiting')
         const _connectedPeers = meetingRoom
 
         //강사한테 요청한 학생이 있음
@@ -64,7 +65,7 @@ const courseSocketController = {
         _socket.emit('alert-host-lecOut', {
             status: status,
             remoteSocketId: mainSocket.id,
-            userInfo: user,
+            reqInfo: reqInfo
         })
 
         let newMessage = await _ChatModel.insertChat(user.user_idx, "", "request_lecOut", room_id)
@@ -78,7 +79,7 @@ const courseSocketController = {
         //message에서 저장할 필요함 type == request_lecOut
         //!insert message
     },
-
+    //!요청하다가 취소
     userCancelRequestLecOut: async (mainSocket, data, meetingRoom, user) => {
         const { status } = data
         const _connectedPeers = meetingRoom
@@ -86,11 +87,11 @@ const courseSocketController = {
         const [socketID, _socket] = _connectedPeers.entries().next().value;
 
         mainSocket.emit('alert-user-process-req-lecOut', status)
-        await _RequestModel.updateRequestLecOutNearest(user.user_idx, room_id, false)
+        let reqInfo = await _RequestModel.updateRequestLecOutNearest(user.user_idx, room_id, false)
         _socket.emit('alert-host-lecOut', {
             status: status,
             remoteSocketId: mainSocket.id,
-            userInfo: user,
+            reqInfo: reqInfo
         })
     },
 
@@ -100,7 +101,6 @@ const courseSocketController = {
     actionForUserRequest: async (mainSocket, data, meetingRoom, user) => {
         let { userId, userRoomId, type, status, remoteSocketId } = data
 
-        console.log(userId, userRoomId, type, status, remoteSocketId)
         //!refactory 해야암
         //!일단
         if(remoteSocketId === undefined){
@@ -108,12 +108,9 @@ const courseSocketController = {
             const remoteUserRoom = await _RoomModel.getUserRoomByRoomIdAndUserId(userRoom.room_id, userId)
             remoteSocketId = remoteUserRoom.socket_id
         }
-
         const _connectedPeers = meetingRoom
-
         const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
 
-        const userInfo = await _UserModel.getUserByUserIdx(userId)
         let result = status === 'accept' ? true : false
         for (const [socketID, _socket] of _connectedPeers.entries()) {
             if (socketID === remoteSocketId) {
@@ -124,7 +121,7 @@ const courseSocketController = {
                         //send 강사
                         mainSocket.emit('alert-host-process-req-question', {
                             type: type,
-                            data: { ...reqQuestionInfo, userInfo },
+                            reqInfo: reqQuestionInfo,
                             remoteSocketId: remoteSocketId
                         })
                         //only send to request user
@@ -133,14 +130,12 @@ const courseSocketController = {
 
                     case "request_lecOut":
                         const reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result)
-
-                        const listUserOut = await _RequestModel.getListUserLecOut(room_id)
                         // send to 강가
                         mainSocket.emit('alert-host-process-req-lecOut', {
                             type: type,
-                            data: {...reqLecOutInfo, userInfo},
+                            reqInfo: reqLecOutInfo,
                             remoteSocketId: remoteSocketId,
-                            listUserOut: listUserOut
+                            // listUserOut: listUserOut
                         })
                         //sent to 학생
                         _socket.emit('alert-user-process-req-lecOut', result)

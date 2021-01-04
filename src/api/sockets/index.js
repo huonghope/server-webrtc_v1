@@ -174,10 +174,11 @@ const initSockets = (io) => {
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, meetingRoomMap[roomname], user))
 
       //chat component socket on handling
+      //! 채팅금지 확인
       socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, meetingRoomMap[roomname], user, room_id))
       socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, meetingRoomMap[roomname], user))
       socket.on('host-req-user-disable-chat', (data) => chatSocketController.actionUserDisableChatting(socket, data, meetingRoomMap[roomname], user, room_id))
-      socket.on('host-req-user-enable-chat', (data) => chatSocketController.actionUserEnableChatting(socket, data, meetingRoomMap[roomname], user, room_id))
+      // socket.on('host-req-user-enable-chat', (data) => chatSocketController.actionUserEnableChatting(socket, data, meetingRoomMap[roomname], user, room_id))
       // socket.on('sent-message', (data) => chatSocketController.sendMessage(socket, data, meetingRoomMap[roomname], user))
 
       //course component socket on handling
