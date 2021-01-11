@@ -155,7 +155,6 @@ const joinRoom = async(req, res, next) =>
     const room = await _RoomModel.getRoomByRoomName(roomname)
     if(room){
       const [user] = await _UserModel.getUserById(req.user.id);
-
       //!
       await _RoomModel.insertUserRoom({roomname, username:  user.username, hostroom: 0})
       return res.status(200).send({
@@ -218,16 +217,49 @@ const upFile =  async(req, res, next) => {
     }
   }
 }
+
+//방의 상태를 체그하고 
+/**
+ * 강죄를 정보를 받아서
+ * 만약에 방을 생성했으면 해당하는 방을 들어감
+ * 또는 방을 생성하지 않으면 새로 방을 하나 생성함 
+ */
 const createRoom = async (req, res, next) => {
   try {
     const { user_idx, user_tp  } = req.user;
-    const { lec_idx, redirect_key } = req.body;
+    const { lec_idx, redirect_key, device } = req.body;
     //강사인 경우에는 새로 방을 만들어짐
     const lectureInfo = await _LectureModel.getLectureByLecIdx(lec_idx)
     const redirectInfo = await _UserModel.getRedirectUserByKey(redirect_key, lec_idx)
 
     //! 다시접근할떄 어떻게 예외처리 필요함
-    if(user_tp === "T" && lectureInfo && redirectInfo){ 
+    if((user_tp === "T" || user_tp === "I") && lectureInfo && redirectInfo){
+      /**
+       * 최선 강죄를 받아서 상태를 확인
+       */
+      let userRoom = await _RoomModel.getUserRoomNearestByUserId(user_idx)
+      let flag = false;
+      if(userRoom){
+        const { status } = userRoom
+        //진행중 이라면 해당하는 방을 들어감
+        if(status === '1'){
+          flag = true;
+        } 
+      }
+
+      if(flag){
+        const room = await _RoomModel.getRoomById(userRoom.room_id)
+        return res.status(200).send({
+          result: true,
+          data:  { 
+            room,
+            usr_id: userRoom.id
+          },
+          message: '방을 생성 성공'
+        })
+      }
+
+     //아예 처음에 접근한 사용자 또는 전에 수업이 다 끝났음 경우에는 
       //!3개 추가해야 함 - 컴퓨터 2개 및 모바일 1개
       //강사라면 방을 생성하고 User-room 추가함 
       const room = await _RoomModel.insertRoom(user_idx, lec_idx, lectureInfo.lecture_nm, redirectInfo.id)
@@ -240,24 +272,46 @@ const createRoom = async (req, res, next) => {
         },
         message: '방을 생성 성공'
       })
-    }else if (user_tp === "S" && lectureInfo && redirectInfo){ 
-      //학생인 경우에는
-      //가장 최근에 해당하는 강의를 만들 강좌를 추가함
-      //!room는 강사의 정보임
-      const room = await _RoomModel.getNearestRoom(redirectInfo.id)
-      let userRoom = await _RoomModel.getUserRoomByRoomIdAndUserId(room.id, user_idx)
-      if(!userRoom)
+
+    }else if ((user_tp === "S" || user_tp === "G") && lectureInfo && redirectInfo){ 
+      //학생이 처음에 들어가거나 나갈떄 처음에 들어감
+      let userRoomAndRoomInfo = await _RoomModel.getUserRoomNearestCurrentDay(user_idx, lec_idx)
+      if(userRoomAndRoomInfo)
       {
-        userRoom = await _RoomModel.insertUserRoom(user_idx, room.id, 0)
+        let room = await _RoomModel.getRoomById(userRoomAndRoomInfo.room_id)
+
+        //해당하는 강죄를 진행중이라고 합니다.
+        if(userRoomAndRoomInfo.status === '1'){
+          return res.status(200).send({
+            result: true,
+            data:  { 
+              room,
+              usr_id: userRoomAndRoomInfo.id
+            },
+            message: '방을 참여 성공'
+          })
+        }else{
+          //강의 열어지 않음
+          //0라면 수업을 끝났음
+          return res.status(200).send({
+            result: false,
+            data: [],
+            message: '강죄를 존재하지 않으니 방 생성 오류'
+          })
+        }
+      }else{
+        //하루에 처음에 들어감
+        const room = await _RoomModel.getNearestRoom(redirectInfo.id)
+        let userRoom = await _RoomModel.insertUserRoom(user_idx, room.id, 0)
+        return res.status(200).send({
+          result: true,
+          data:  { 
+            room,
+            usr_id: userRoom.id
+          },
+          message: '방을 참여 성공'
+        })
       }
-      return res.status(200).send({
-        result: true,
-        data:  { 
-          room,
-          usr_id: userRoom.id
-        },
-        message: '방을 참여 성공'
-      })
     }else{
       return res.status(200).send({
         result: false,

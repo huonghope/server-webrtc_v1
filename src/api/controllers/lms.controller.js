@@ -92,7 +92,7 @@ const openCourse = async (req, res, next) => {
       return res.send({
         result: true,
         data: {
-          url: "https://plassrtc.ga",
+          url: "https://rtc.lecplanet.com",
           redirect_key : redirectUser.redirect_key,
           user_idx: userInfo.user_idx,
           sl_idx: lec_idx

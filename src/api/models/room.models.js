@@ -154,6 +154,28 @@ const getUseRoomBySocketId = async(socketId) => {
     console.log(error)
   }
 }
+
+const getUserRoomNearestCurrentDay = async (userId, lec_idx) => {
+  try {
+    const [row] = await db.query(sql.room.getUserRoomNearestCurrentDay, [userId,lec_idx])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const getUserRoomNearestByUserId = async (userId) => {
+  try {
+    const [row] = await db.query(sql.room.getUserRoomNearestByUserId, [userId])
+    if(row.length !== 0)
+      return row[0]
+    return null
+  } catch (error) {
+    console.log(error)
+  }
+}
 module.exports = {
   insertRoom,
   getRoomUserByUserName,
@@ -168,5 +190,7 @@ module.exports = {
   getUserRoomByRoomIdAndUserId,
   selectUserRoomByIdAndUserId,
   getUseRoomBySocketId,
-  getHostUserRoomInfo
+  getHostUserRoomInfo,
+  getUserRoomNearestByUserId,
+  getUserRoomNearestCurrentDay
 }

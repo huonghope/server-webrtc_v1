@@ -19,9 +19,16 @@ module.exports = {
     getListUserByRoomId: "select ur.*,u.user_name,user_tp from plass_userroom as ur, plass_user as u where u.user_idx = ur.user_idx and ur.room_id = ?",
     selectUserRoomByIdAndUserId: "select * from plass_userroom where id = ? and user_idx = ?",
     getHostUserRoomInfo: "select * from plass_userroom where room_id = ? and host_user = 1",
+    getUserRoomNearestCurrentDay: `SELECT ur.* FROM plass_userroom as ur, plass_room as r WHERE DATE(ur.update_time) = CURDATE() 
+    and ur.user_idx = ?
+    and r.id = ur.room_id
+    and r.lec_idx = ?
+    order by ur.id desc LIMIT 1
+    `,
 
 
     getUserRoomByRoomIdAndUserId: "select * from plass_userroom where room_id = ? and user_idx = ?",
+    getUserRoomNearestByUserId: "select * from plass_userroom where user_idx = ? order by id desc LIMIT 1",
 
     getRoomByLecIdxAndUserIdx: "select * from plass_room where lec_idx = ? and user_idx = ?",
     getUserRoomById: "select * from plass_userroom where id = ?",

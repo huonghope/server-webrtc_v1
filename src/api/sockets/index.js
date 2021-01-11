@@ -75,6 +75,7 @@ const initSockets = (io) => {
        */
 
 
+      //! 확인함
       const user = await getUserInfo(socket.decoded_token.sub);
       const { roomId } = socket.handshake.query
       const { user_name, user_idx } = user
@@ -140,9 +141,8 @@ const initSockets = (io) => {
       //   success: socket.id,
       //   peerCount: roomByName.size,
       // })
-
       socket.emit('connection-success', {
-          isHost: socket.id === meetingRoomMap[roomname].entries().next().value[0],
+          isHost: (user.user_tp === 'T' || user.user_tp === 'I') ? socket.id === meetingRoomMap[roomname].entries().next().value[0] : false,
           success: socket.id,
           peerCount: meetingRoomMap[roomname].size,
           // messages: messages[room],
@@ -195,7 +195,6 @@ const initSockets = (io) => {
         const _connectedPeers = meetingRoomMap[roomname]
         for (const [_socketID, _socket] of _connectedPeers.entries()) {
           _socket.emit('peer-disconnected', {
-                peerCount: meetingRoomMap[roomname].size,
                 socketID
             })
         }

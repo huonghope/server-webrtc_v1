@@ -21,6 +21,7 @@ const compression = require('compression');
 
 const _LmsModel = require("../models/lms.models")
 const uuidv4 = require("uuid/v4");
+const { user } = require('../../../sql/index');
 
 /**
  * 강의를 개설할때 LMS부터 받은 정보들을 데이트베이서에서 자장함
@@ -38,10 +39,10 @@ const getListMessageByUserIAndRoomId = async (req, res, next) => {
   let userRoomInfo = await _RoomModel.getUserRoomById(userRoomId)
 
   let listResMessage = []
-  let listMessage
-  if(user_tp === 'T'){
+  let listMessage = []
+  if(user_tp === 'T' || user_tp === 'I'){
     listMessage = await _ChatModel.getListMessageByRoomId(userRoomInfo.room_id)
-  }else if(user_tp === 'S'){
+  }else if(user_tp === 'S' || user_tp === 'G'){
     //Host 및 자기Id를 전달해서 메시지를 출력함
     let hostUserRoomInfo = await _RoomModel.getHostUserRoomInfo(userRoomInfo.room_id)
     listMessage = await _ChatModel.getListMessageByRoomIdForStudent(userRoomInfo.room_id, user_idx, hostUserRoomInfo.user_idx)
