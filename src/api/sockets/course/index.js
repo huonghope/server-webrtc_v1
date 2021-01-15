@@ -119,12 +119,22 @@ const courseSocketController = {
                 switch (type) {
                     case "request_question":
                         const reqQuestionInfo = await _RequestModel.updateRequestQuestionNearest(userId, room_id, result)
+
                         //send 강사
                         mainSocket.emit('alert-host-process-req-question', {
                             type: type,
                             reqInfo: reqQuestionInfo,
-                            remoteSocketId: remoteSocketId
+                            remoteSocketId: remoteSocketId,
+                            state: result
                         })
+
+                        // if(!resule){
+                        //     mainSocket.emit('alert-host-question', {
+                        //         status: result,
+                        //         remoteSocketId: socketID,
+                        //         reqInfo: reqQuestionInfo
+                        //     })
+                        // }
                         //only send to request user
                         _socket.emit('alert-user-process-req-question', result)
                         break;
@@ -185,17 +195,15 @@ const courseSocketController = {
         }
     },
     stateMicAllStudent : (mainSocket, data, meetingRoom, user) => {
-
-        console.log(data)
-
         const _connectedPeers = meetingRoom
-        
+        let index = 0;
+        const [_socketID, _socket] = _connectedPeers.entries().next().value
         for (const [socketID, socket] of _connectedPeers.entries()) {
-            const [_socketID, _socket] = _connectedPeers.entries().next().value
-            // if (socketID !== _socketID) {
+            if (socketID !== mainSocket.id) {
                 socket.emit('alert-user-mute-mic', {data})
-            // }
+            }
         }
+        
     }
     // //집중도 테스트 실패
     // testConcentrationFail: async (mainSocket, data, meetingRoom, user) => {

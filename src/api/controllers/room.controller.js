@@ -423,11 +423,13 @@ const upTestConcentration = async (req, res, next) => {
     const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
     const _connectedPeers = meetingRoomMap[room_id];
     const [_socketID, _socket] = _connectedPeers.entries().next().value
-    let chat = await _ChatModel.insertChat(user_idx, "", "test_Concentration", room_id)
-    const test = await _TestModel.insertTestConcentration(user_idx, room_id, status, chat.id)
-    chat.username = user_name
+    let newMessage = await _ChatModel.insertChat(user_idx, "", "test_Concentration", room_id)
+    const test = await _TestModel.insertTestConcentration(user_idx, room_id, status, newMessage.id)
+    
     if (!status) {
-      _socket.emit('alert-host-test-concentration-fail', chat)
+      let resMessage = await _ChatModel.convertResponseMessage(newMessage)
+      resMessage.sender.username = user_name
+      _socket.emit('alert-host-test-concentration-fail', resMessage)
     }
     return res.status(200).send({
       result: false,
