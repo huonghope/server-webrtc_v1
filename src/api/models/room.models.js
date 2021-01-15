@@ -1,9 +1,9 @@
 const db = require("../../config/db-connection")
 const sql = require("../../../sql")
 
-const insertRoom = async (user_id, lec_id, room_name, redirect_id) => {
+const insertRoom = async (user_id, lec_id, room_name, redirect_id, s_time, e_time) => {
   try {
-    const [row] = await db.query(sql.room.insertRoom, [user_id, lec_id, room_name,redirect_id])
+    const [row] = await db.query(sql.room.insertRoom, [user_id, lec_id, room_name,redirect_id, s_time, e_time])
     if(row.length !== 0)
       return getRoomById(row.insertId)
     return null
@@ -11,9 +11,9 @@ const insertRoom = async (user_id, lec_id, room_name, redirect_id) => {
     console.log(error)    
   }
 }
-const insertUserRoom = async(user_idx, room_id, host_user) => {
+const insertUserRoom = async(user_idx, room_id, host_user, device) => {
   try {
-    const [row] = await db.query(sql.room.insertUserRoom, [user_idx, room_id , host_user])
+    const [row] = await db.query(sql.room.insertUserRoom, [user_idx, room_id , host_user, device])
     if(row.length !== 0)
       return getUserRoomById(row.insertId)
     return null
@@ -26,6 +26,15 @@ const selectUserRoomByIdAndUserId = async (userRoomId, userId) => {
     const [row] = await db.query(sql.room.selectUserRoomByIdAndUserId, [userRoomId, userId])
     if(row.length !== 0)
       return row[0]
+    return null
+  } catch (error) {
+    console.log(error)    
+  }
+}
+
+const updateStateForUserRoom = async(userRoomId, state) => {
+  try {
+    await db.query(sql.room.updateStateForUserRoom, [state, userRoomId])
     return null
   } catch (error) {
     console.log(error)    
@@ -128,9 +137,9 @@ const getRoomById = async(id) => {
   }
 }
 
-const insertSocketId = async(socketId, user_id, room_id) => {
+const insertSocketId = async(socketId, id) => {
   try {
-    const [row] = await db.query(sql.room.insertSocketIdToUserRoom, [socketId, user_id, room_id])
+    const [row] = await db.query(sql.room.insertSocketIdToUserRoom, [socketId, id])
     return row
   } catch (error) {
     console.log(error)
@@ -155,9 +164,14 @@ const getUseRoomBySocketId = async(socketId) => {
   }
 }
 
-const getUserRoomNearestCurrentDay = async (userId, lec_idx) => {
+const getUserRoomNearestToday= async (userId, lec_idx, device = null) => {
   try {
-    const [row] = await db.query(sql.room.getUserRoomNearestCurrentDay, [userId,lec_idx])
+    let row
+    if(device){
+      [row] = await db.query(sql.room.getUserRoomNearestTodayWithDevice, [userId, lec_idx, device])
+    }else{  
+      [row] = await db.query(sql.room.getUserRoomNearestTodayNoDevice, [userId, lec_idx])
+    }
     if(row.length !== 0)
       return row[0]
     return null
@@ -192,5 +206,6 @@ module.exports = {
   getUseRoomBySocketId,
   getHostUserRoomInfo,
   getUserRoomNearestByUserId,
-  getUserRoomNearestCurrentDay
+  getUserRoomNearestToday,
+  updateStateForUserRoom
 }

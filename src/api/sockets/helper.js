@@ -27,7 +27,7 @@ const removeSocketIdToArray = (clients, userId, socket) => {
     delete clients[userId]
   }
   return clients
-}
+} 
 
 const getUserInfo = async (user_idx) => {
   try {
@@ -58,15 +58,25 @@ const getUserRoomById = async(id) => {
   }
 }
 
-const insertSocketIdToUserRoom = async(socketId, user_idx, room_id) => {
+const insertSocketIdToUserRoom = async(socketId, id) => {
   try {
-    const insertRow = await _RoomModel.insertSocketId(socketId, user_idx, room_id);
+    const insertRow = await _RoomModel.insertSocketId(socketId, id);
     if (insertRow) return insertRow;
     return null;
   } catch (error) {
     throw error;
   }
 }
+
+const updateStateForUserRoom = async(userRoomId, state) => {
+  try {
+    await _RoomModel.updateStateForUserRoom(userRoomId, state);
+    return null;
+  } catch (error) {
+    throw error;
+  }
+}
+//first value
 const updateSocketId = async (meetingRoomMap, socket, role) => {
   //이사람을 host인지 검사
   if(role) //host user
@@ -75,7 +85,6 @@ const updateSocketId = async (meetingRoomMap, socket, role) => {
 }
 const displayMapSocket = (map) => {
   for (const [_socketID, _socket] of map.entries()) {
-    console.log(_socketID)
   }
 }
 const emitNotifyToArray = (clients, userId, io, eventName, data) => clients[userId].forEach(socketId =>
@@ -91,5 +100,6 @@ module.exports = {
   pushSocketToRoomMapHost,
   updateSocketId,
   displayMapSocket,
-  getUserRoomById
+  getUserRoomById,
+  updateStateForUserRoom
 };

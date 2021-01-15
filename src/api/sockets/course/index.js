@@ -3,6 +3,7 @@ const _RoomModel = require('../../models/room.models')
 const _ChatModel = require('../../models/chat.models')
 const _UserModel = require('../../models/user.models')
 const _WarningModel = require('../../models/warning')
+const { conforms } = require('lodash')
 
 
 //!강사한테만 socket를 구분해야됨
@@ -183,6 +184,19 @@ const courseSocketController = {
             }
         }
     },
+    stateMicAllStudent : (mainSocket, data, meetingRoom, user) => {
+
+        console.log(data)
+
+        const _connectedPeers = meetingRoom
+        
+        for (const [socketID, socket] of _connectedPeers.entries()) {
+            const [_socketID, _socket] = _connectedPeers.entries().next().value
+            // if (socketID !== _socketID) {
+                socket.emit('alert-user-mute-mic', {data})
+            // }
+        }
+    }
     // //집중도 테스트 실패
     // testConcentrationFail: async (mainSocket, data, meetingRoom, user) => {
     //     const { userRoomId } = data
