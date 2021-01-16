@@ -185,8 +185,9 @@ const courseSocketController = {
     //집중도 테스트
     testConcentration: (mainSocket, data, meetingRoom, user) => {
         const _connectedPeers = meetingRoom
+        const [_socketID, _socket] = _connectedPeers.entries().next().value
+        
         for (const [socketID, socket] of _connectedPeers.entries()) {
-            const [_socketID, _socket] = _connectedPeers.entries().next().value
             if (socketID !== _socketID) {
                 socket.emit('alert-user-test-concentration', {
                     number: data.number
@@ -199,9 +200,12 @@ const courseSocketController = {
         let index = 0;
         const [_socketID, _socket] = _connectedPeers.entries().next().value
         for (const [socketID, socket] of _connectedPeers.entries()) {
-            if (socketID !== mainSocket.id) {
+            //Client 보냄
+            // if (socketID !== mainSocket.id) {
+                console.log(socketID)
+                console.log('모든 학생 음성',data)
                 socket.emit('alert-user-mute-mic', {data})
-            }
+            // }
         }
         
     }
