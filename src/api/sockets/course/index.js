@@ -197,15 +197,9 @@ const courseSocketController = {
     },
     stateMicAllStudent : (mainSocket, data, meetingRoom, user) => {
         const _connectedPeers = meetingRoom
-        let index = 0;
-        const [_socketID, _socket] = _connectedPeers.entries().next().value
         for (const [socketID, socket] of _connectedPeers.entries()) {
-            //Client 보냄
-            if (socketID !== mainSocket.id) {
-                console.log(socketID)
-                console.log('모든 학생 음성',data)
-                socket.emit('alert-user-mute-mic', {data})
-            }
+            console.log('모든 학생 음성',data)
+            socket.emit('alert-user-mute-mic-all', {data})
         }
         
     }
