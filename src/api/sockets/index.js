@@ -41,7 +41,8 @@ const initSockets = (io) => {
       const { user_name, user_idx } = user
       const userRoom = await getUserRoomById(roomId)
       const { id, room_id, host_user } = userRoom;
-
+      
+      console.log("socket connected", user.user_name)
       //update socket_id
       if(user){
         //!insert socket to roomuser
