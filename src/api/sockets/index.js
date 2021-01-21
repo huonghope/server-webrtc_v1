@@ -60,11 +60,15 @@ const initSockets = (io) => {
       const roomByName = meetingRoomMap[roomname]
       updateStateForUserRoom(id, 1)
       socket.emit('user-role',{ userRole :  (user.user_tp === 'T' || user.user_tp === 'I') ? true : false })
-      socket.emit('connection-success', {
-          isHost: (user.user_tp === 'T' || user.user_tp === 'I') ? socket.id === meetingRoomMap[roomname].entries().next().value[0] : false,
-          success: socket.id,
-          peerCount: meetingRoomMap[roomname].size,
-          // messages: messages[room],
+      socket.emit('user-role',{ userRole :  (user.user_tp === 'T' || user.user_tp === 'I') ? true : false })
+      socket.emit('user-role',{ userRole :  (user.user_tp === 'T' || user.user_tp === 'I') ? true : false })
+      socket.on('join-room',  () => {
+        socket.emit('connection-success', {
+            isHost: (user.user_tp === 'T' || user.user_tp === 'I') ? socket.id === meetingRoomMap[roomname].entries().next().value[0] : false,
+            success: socket.id,
+            peerCount: meetingRoomMap[roomname].size,
+            // messages: messages[room],
+        })
       })
 
       socket.on('disconnect',  () => {
