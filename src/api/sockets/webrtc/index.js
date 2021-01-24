@@ -7,7 +7,7 @@ const webRTCSocketController = {
      * @param {*} meetingRoomMap: 강좌별 sockets 저장하는 Map
      * @param {*} user: 현재 유저
      */
-
+    
     /**
      * @desc
      * - 강사인 경우에는 peer: 1 ~ N
@@ -16,8 +16,6 @@ const webRTCSocketController = {
     onlinePeers:  (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
         const [socketID, _socket] =  _connectedPeers.entries().next().value;
-        // console.log(meetingRoomMap)
-        // console.log("connect Peer", _connectedPeers)
         if (socketID !== data.socketID.local) { //일단 유저
             mainSocket.emit('online-peer', socketID) 
         }else{  //강사인 경우에는 다른 유저를 연결함

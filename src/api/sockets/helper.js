@@ -2,32 +2,6 @@ const _UserModel = require("../models/user.models")
 const _RoomModel = require("../models/room.models")
 
 
-const pushSocketToRoomMap = (meetingRoomMap, room, socket) => {
-  if(!meetingRoomMap[room]){
-    meetingRoomMap[room] = new Map();
-    meetingRoomMap[room].set(socket.id, socket);
-  }else{
-    meetingRoomMap[room].set(socket.id, socket);
-  }
-  return meetingRoomMap
-}
-const pushSocketToRoomMapHost = (meetingRoomMap, room, socket) => {
-  if(!meetingRoomMap[room]){
-    meetingRoomMap[room] = new Map();
-    meetingRoomMap[room].set(socket.id, socket);
-  }else{
-    meetingRoomMap[room] = new Map([[socket.id, socket], ...meetingRoomMap[room]]);
-  }
-  return meetingRoomMap
-}
-
-const removeSocketIdToArray = (clients, userId, socket) => {
-  clients[userId] = clients[userId].filter(socketId => socketId !== socket.id)
-  if(!clients[userId].length){
-    delete clients[userId]
-  }
-  return clients
-} 
 
 const getUserInfo = async (user_idx) => {
   try {
@@ -39,15 +13,6 @@ const getUserInfo = async (user_idx) => {
   }
 };
 
-const getRoomUserByUserName = async(username) => {
-  try {
-    const [user] = await _RoomModel.getRoomUserByUserName(username);
-    if (user) return user;
-    return null;
-  } catch (error) {
-    throw error;
-  }
-}
 const getUserRoomById = async(id) => {
   try {
     const user = await _RoomModel.getUserRoomById(id);
@@ -66,6 +31,13 @@ const insertSocketIdToUserRoom = async(socketId, id) => {
   } catch (error) {
     throw error;
   }
+}
+
+const getFirstValueMap = (map) => {
+    if(map){
+      return map.entries().next().value
+    }
+    return null
 }
 
 const updateStateForUserRoom = async(userRoomId, state) => {
@@ -87,17 +59,12 @@ const displayMapSocket = (map) => {
   for (const [_socketID, _socket] of map.entries()) {
   }
 }
-const emitNotifyToArray = (clients, userId, io, eventName, data) => clients[userId].forEach(socketId =>
-  io.sockets.connected[socketId].emit(eventName, data));
+
 
 module.exports = {
-  pushSocketToRoomMap,
-  removeSocketIdToArray,
-  emitNotifyToArray,
+  getFirstValueMap,
   getUserInfo,
-  getRoomUserByUserName,
   insertSocketIdToUserRoom,
-  pushSocketToRoomMapHost,
   updateSocketId,
   displayMapSocket,
   getUserRoomById,
