@@ -1,4 +1,3 @@
-
 //IMPORT PACKAGE
 const express = require('express')
 const morgan = require('morgan') //display logger
@@ -30,14 +29,12 @@ var app = express();
 // static folder
 app.use('/api/files', express.static('update', {fallthrough: false}),); 
 
-// add middlewares
-app.use(express.static(path.join(__dirname,"/../../", "build")));
-app.use(express.static("public"));
+app.use(express.static(__dirname + '/../../build'))
+app.set('views', __dirname + '/../../build');
 
-app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, "/../../", "build", "index.html"));
-});
-
+app.get('/', (req, res, next) => { //default room
+  res.sendFile(__dirname + '/../../build/index.html')
+})
 
 // Init server with socket.io and express app
 const options = {
@@ -86,4 +83,3 @@ app.use(error.handler);
 
 
 module.exports = server;
-
