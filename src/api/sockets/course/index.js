@@ -29,10 +29,12 @@ const courseSocketController = {
         const { room_id } = userRoom
         let reqInfo = await _RequestModel.insertRequestQuestion(user.user_idx, room_id, 'waiting')
 
+
+        console.log(status)
         //강사한테 알림(화면)
         const [socketID, _socket] = getFirstValueMap(meetingRoom);
         _socket.emit('alert-host-question', {
-            status: status,
+            status: 'waiting',
             remoteSocketId: mainSocket.id,
             reqInfo: reqInfo
         })
@@ -71,7 +73,7 @@ const courseSocketController = {
         const { status } = data
         const { room_id } = userRoom
         let reqInfo = await _RequestModel.insertRequestLecOut(user.user_idx, room_id, 'waiting')
-
+        console.log(status)
         //강사한테 요청한 학생이 있음
         const [socketID, _socket] = getFirstValueMap(meetingRoom);
         _socket.emit('alert-host-lecOut', {
@@ -97,6 +99,7 @@ const courseSocketController = {
         const { room_id } = userRoom
         const [socketID, _socket] = getFirstValueMap(meetingRoom);
 
+        mainSocket.emit('alert-user-process-req-lecOut', status)
         let reqInfo = await _RequestModel.updateRequestLecOutNearest(user.user_idx, room_id, false)
         _socket.emit('alert-host-lecOut', {
             status: status,
@@ -131,10 +134,9 @@ const courseSocketController = {
                         //! 확인할 필요함
                         const reqQuestionInfo = await _RequestModel.updateRequestQuestionNearest(userId, room_id, result)
                         mainSocket.emit('alert-host-process-req-question', {
-                            type: type,
                             reqInfo: reqQuestionInfo,
                             remoteSocketId: remoteSocketId,
-                            state: result
+                            status: result
                         })
                         _socket.emit('alert-user-process-req-question', result)
                         break;
@@ -142,10 +144,9 @@ const courseSocketController = {
                     case "request_lecOut":
                         const reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result)
                         mainSocket.emit('alert-host-process-req-lecOut', {
-                            type: type,
                             reqInfo: reqLecOutInfo,
                             remoteSocketId: remoteSocketId,
-                            state: result
+                            status: result
                         })
                         _socket.emit('alert-user-process-req-lecOut', result)
                         break;
