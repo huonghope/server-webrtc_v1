@@ -425,10 +425,10 @@ const upTestConcentration = async (req, res, next) => {
     const [_socketID, _socket] = _connectedPeers.entries().next().value
     let newMessage = await _ChatModel.insertChat(user_idx, "", "test_Concentration", room_id)
     const test = await _TestModel.insertTestConcentration(user_idx, room_id, status, newMessage.id)
-    
     if (!status) {
       let resMessage = await _ChatModel.convertResponseMessage(newMessage)
       resMessage.sender.username = user_name
+      resMessage.type = "test-concentration-fail";
       _socket.emit('alert-host-test-concentration-fail', resMessage)
     }
     return res.status(200).send({

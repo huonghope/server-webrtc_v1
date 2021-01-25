@@ -82,9 +82,10 @@ const initSockets = (io) => {
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, currentUserRoomMap, user))
 
       //chat component socket on handling
-      socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, currentUserRoomMap, user, room_id))
-      socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user))
+      socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('host-req-user-disable-chat', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user, room_id))
+      
+      // socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user))
       // socket.on('host-req-user-enable-chat', (data) => chatSocketController.actionUserEnableChatting(socket, data, currentUserRoomMap, user, room_id))
       // socket.on('sent-message', (data) => chatSocketController.sendMessage(socket, data, currentUserRoomMap, user))
 

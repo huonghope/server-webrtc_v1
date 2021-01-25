@@ -3,7 +3,6 @@ const _RoomModel = require('../../models/room.models')
 const _ChatModel = require('../../models/chat.models')
 const _UserModel = require('../../models/user.models')
 const _WarningModel = require('../../models/warning')
-const { conforms } = require('lodash')
 
 const { getFirstValueMap } = require('../helper')
 //!강사한테만 socket를 구분해야됨
@@ -29,14 +28,13 @@ const courseSocketController = {
         const { room_id } = userRoom
         let reqInfo = await _RequestModel.insertRequestQuestion(user.user_idx, room_id, 'waiting')
 
-
-        console.log(status)
         //강사한테 알림(화면)
         const [socketID, _socket] = getFirstValueMap(meetingRoom);
         _socket.emit('alert-host-question', {
             status: 'waiting',
             remoteSocketId: mainSocket.id,
-            reqInfo: reqInfo
+            reqInfo: reqInfo,
+            type: 'request_question'
         })
 
         //메시지
@@ -61,7 +59,8 @@ const courseSocketController = {
         _socket.emit('alert-host-question', {
             status: status,
             remoteSocketId: mainSocket.id,
-            reqInfo: reqInfo
+            reqInfo: reqInfo,
+            type: 'request_question'
         })
     },
     /**
@@ -73,13 +72,14 @@ const courseSocketController = {
         const { status } = data
         const { room_id } = userRoom
         let reqInfo = await _RequestModel.insertRequestLecOut(user.user_idx, room_id, 'waiting')
-        console.log(status)
+
         //강사한테 요청한 학생이 있음
         const [socketID, _socket] = getFirstValueMap(meetingRoom);
         _socket.emit('alert-host-lecOut', {
             status: status,
             remoteSocketId: mainSocket.id,
-            reqInfo: reqInfo
+            reqInfo: reqInfo,
+            type: 'request_lecOut'
         })
 
         let newMessage = await _ChatModel.insertChat(user.user_idx, "", "request_lecOut", room_id)
@@ -104,7 +104,8 @@ const courseSocketController = {
         _socket.emit('alert-host-lecOut', {
             status: status,
             remoteSocketId: mainSocket.id,
-            reqInfo: reqInfo
+            reqInfo: reqInfo,
+            type: 'request_lecOut'
         })
     },
     /**
@@ -136,17 +137,18 @@ const courseSocketController = {
                         mainSocket.emit('alert-host-process-req-question', {
                             reqInfo: reqQuestionInfo,
                             remoteSocketId: remoteSocketId,
-                            status: result
+                            status: result,
+                            type: type
                         })
                         _socket.emit('alert-user-process-req-question', result)
                         break;
-
                     case "request_lecOut":
                         const reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result)
                         mainSocket.emit('alert-host-process-req-lecOut', {
                             reqInfo: reqLecOutInfo,
                             remoteSocketId: remoteSocketId,
-                            status: result
+                            status: result,
+                            type: type
                         })
                         _socket.emit('alert-user-process-req-lecOut', result)
                         break;
@@ -189,6 +191,7 @@ const courseSocketController = {
             }
         }
     },
+    //전체학생이 마이크 클릭 이벤트
     stateMicAllStudent : (mainSocket, data, meetingRoom, user) => {
         const _connectedPeers = meetingRoom
         for (const [socketID, socket] of _connectedPeers.entries()) {

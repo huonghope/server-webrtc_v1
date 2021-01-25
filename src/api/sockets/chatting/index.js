@@ -2,6 +2,8 @@ const _ChatModel = require('../../models/chat.models')
 const _UserModel = require('../../models/user.models')
 const _RoomModel = require('../../models/room.models')
 const { checkHostBySocketId } = require('../../models/helper.models')
+
+const { getFirstValueMap } = require('../helper')
 /**
  * 채팅방식
  * - 강사 ~ 모든 학생
@@ -12,10 +14,25 @@ const { checkHostBySocketId } = require('../../models/helper.models')
  */
 const chatSocketController = {
   //!데이티 베이스에다가 저장할 필요함
-  sentMessage:  async (mainSocket, data, meetingRoomMap, user, room_id) => {
-      let { type } = data;
-      let { uid } = data.message.sender;
-      let { text: message } = data.message.data;
+  /**
+   * all
+   * @param {*} mainSocket:현재 socket 
+   * @param {*} data: client부터 같이 보낸 데이터
+   * @param {*} meetingRoomMap: 강좌별로 socket 저장하는 Map
+   * @param {*} user: 현재 유저
+   * @getFirstValueMap {*}: 강사변수
+   */
+
+  /**
+   * @desc: 메시지를 보낼때 발생하는 이벤트
+   * 강사: 모든 학생한테 보냄
+   * 학생: 강사한테만 보냄
+   */
+  sentMessage:  async (mainSocket, data, meetingRoomMap, user, userRoom) => {
+      const { type } = data;
+      const { uid } = data.message.sender;
+      const { text: message } = data.message.data;
+      const { room_id } = userRoom
       const newMessage = await _ChatModel.insertChat(uid, message, type, room_id )
       const _connectedPeers = meetingRoomMap
 
@@ -32,7 +49,12 @@ const chatSocketController = {
         _socket.emit('res-sent-message', resMessage)
       }
   },
-  //메시지 같이 전달함?
+  
+  /**
+   * @desc: 메시지를 보낼때 발생하는 이벤트
+   * 강사: 모든 학생한테 보냄
+   * 학생: 강사한테만 보냄
+   */
   actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, room_id) => {
     const { remoteSocketId, userId } = data
     const _connectedPeers = meetingRoomMap
