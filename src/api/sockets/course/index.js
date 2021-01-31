@@ -165,7 +165,7 @@ const courseSocketController = {
                         if(result){
                             reqQuestionInfo = await _RequestModel.updateRequestQuestionNearest(userId, room_id, result)
                         }else{
-                            let reqNearest  = await _RequestModel.getRequestLecOutNearest(userId, room_id)
+                            let reqNearest  = await _RequestModel.getRequestQuestionNearest(userId, room_id)
                             if(reqNearest){
                                 const { req_status } = reqNearest
                                 if(req_status === 'waiting'){
@@ -193,10 +193,6 @@ const courseSocketController = {
                             //끝나는 시간이 같이 저정함
                             reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result, currentTime)
                         }
-                        console.log(reqLecOutInfo)
-                        console.log(remoteSocketId)
-                        console.log(result)
-                        console.log(type)
                         mainSocket.emit('alert-host-process-req-lecOut', {
                             reqInfo: reqLecOutInfo,
                             remoteSocketId: remoteSocketId,

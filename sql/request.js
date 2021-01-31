@@ -24,7 +24,7 @@ module.exports = {
   getRequestLecOutById: 'select * from plass_req_lecout where id = ?',
   updateRequestLecOutNearest: `update plass_req_lecout set req_status = ?, end_time = ? where user_idx = ? AND room_id= ? order by id desc limit 1`,
   getRequestLecOutNearest: `
-  select rl.*, ur.socket_id from plass_req_lecout as rl, plass_userroom as ur where rl.user_idx = 9 AND rl.room_id= 612 
+  select rl.*, ur.socket_id from plass_req_lecout as rl, plass_userroom as ur where rl.user_idx = ? AND rl.room_id= ? 
 	and rl.user_idx = ur.user_idx
     and rl.room_id = ur.room_id
 	order by rl.id desc limit 1`,
