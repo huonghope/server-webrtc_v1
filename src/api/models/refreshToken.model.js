@@ -35,7 +35,7 @@ const generate = (user) => {
     userId: user.userId, 
     expires,
   };
-  insertRefreshToken(tokenObject)
+  // insertRefreshToken(tokenObject)
   return tokenObject;
 }
 

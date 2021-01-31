@@ -15,6 +15,8 @@ const webRTCSocketController = {
      */
     onlinePeers:  (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
+        console.log("MAP SIZE", meetingRoomMap.size)
+        //강사
         const [socketID, _socket] =  _connectedPeers.entries().next().value;
         if (socketID !== data.socketID.local) { //일단 유저
             mainSocket.emit('online-peer', socketID) 

@@ -145,14 +145,6 @@ const insertSocketId = async(socketId, id) => {
     console.log(error)
   }
 }
-const getListUserByRoomId = async(room_id) => {
-  try {
-    const [row] = await db.query(sql.room.getListUserByRoomId, [room_id])
-    return row
-  } catch (error) {
-    console.log(error)
-  }
-}
 const getUseRoomBySocketId = async(socketId) => {
   try {
     const [row] = await db.query(sql.room.getUseRoomBySocketId, [socketId])
@@ -190,6 +182,8 @@ const getUserRoomNearestByUserId = async (userId) => {
     console.log(error)
   }
 }
+
+
 module.exports = {
   insertRoom,
   getRoomUserByUserName,
@@ -207,5 +201,5 @@ module.exports = {
   getHostUserRoomInfo,
   getUserRoomNearestByUserId,
   getUserRoomNearestToday,
-  updateStateForUserRoom
+  updateStateForUserRoom,
 }

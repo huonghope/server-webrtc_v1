@@ -36,33 +36,33 @@ const request = require('request');
 // httpreq.end();
 
 const getICETurnServer = () => new Promise(async (resolve, reject) => {
-  // get ICE STUN and TURN list
-  const o = {
-    format: 'urls',
-  };
-  const bodyString = JSON.stringify(o);
-  const host = 'global.xirsys.net';
-  const path = '/_turn/awesome-chat';
-  const options = {
-    url: `https://${host}${path}`,
-    method: 'PUT',
-    headers: {
-      Authorization:
-          `Basic ${
-            Buffer.from('fammanh217:b8a05688-9055-11ea-ab11-0242ac150003').toString('base64')}`,
-      'Content-Type': 'application/json',
-      'Content-Length': bodyString.length,
-    },
-  };
-    // call request to get ICE list of TURN server
-  request(options, (error, res, body) => {
-    if (error) {
-      console.log(`Error when get ICE list: ${error}`);
-      return reject(error);
-    }
-    const bodyJson = JSON.parse(body);
-    resolve(bodyJson.v.iceServers);
-  });
+  // // get ICE STUN and TURN list
+  // const o = {
+  //   format: 'urls',
+  // };
+  // const bodyString = JSON.stringify(o);
+  // const host = 'global.xirsys.net';
+  // const path = '/_turn/awesome-chat';
+  // const options = {
+  //   url: `https://${host}${path}`,
+  //   method: 'PUT',
+  //   headers: {
+  //     Authorization:
+  //         `Basic ${
+  //           Buffer.from('fammanh217:b8a05688-9055-11ea-ab11-0242ac150003').toString('base64')}`,
+  //     'Content-Type': 'application/json',
+  //     'Content-Length': bodyString.length,
+  //   },
+  // };
+  //   // call request to get ICE list of TURN server
+  // request(options, (error, res, body) => {
+  //   if (error) {
+  //     console.log(`Error when get ICE list: ${error}`);
+  //     return reject(error);
+  //   }
+  //   const bodyJson = JSON.parse(body);
+  //   resolve(bodyJson.v.iceServers);
+  // });
 });
 
 getICETurnServer();

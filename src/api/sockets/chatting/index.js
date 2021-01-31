@@ -83,6 +83,18 @@ const chatSocketController = {
     {
         //!다시 확인할 필요함
         if (socketID === remoteSocketId) {
+            let disableChat = await _ChatModel.getDisableChat(userId, room_id)
+            if(disableChat){
+              let { c_status } = disableChat
+              c_status = c_status ===  1 ? 0 : 1
+              console.log(userId, room_id, c_status)
+              //있으며 디폴드 반대
+              await _ChatModel.updateDisableChat(userId, room_id, c_status)
+            }else{
+              //처음에 없으면 디폴드 true
+              await _ChatModel.insertDisableChat(userId, room_id, 1)
+            }
+
             let newMessage = await _ChatModel.insertChat(userId, "", "disable-chat",room_id)
             let resMessage = await _ChatModel.convertResponseMessage(newMessage)
             let userInfo = await _UserModel.getUserByUserIdx(userId)

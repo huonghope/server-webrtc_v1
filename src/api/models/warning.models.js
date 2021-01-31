@@ -1,5 +1,6 @@
 const db = require("../../config/db-connection")
 const sql = require("../../../sql")
+const room = require("../../../sql/room")
 
 const insertWarning = async (user_idx, room_id, message_id) => {
   try {
@@ -10,6 +11,15 @@ const insertWarning = async (user_idx, room_id, message_id) => {
     console.log(error)
   }
 }
+const getWarningInfo = async (userId, roomId) => {
+  try {
+    const [rows] = await db.query(sql.warning.getWarningInfo, [userId, roomId])
+    return rows
+  } catch (error) {
+    console.log(error) 
+  }
+}
+
 
 const getWarningById = async (id) => {
   try {
@@ -23,4 +33,5 @@ const getWarningById = async (id) => {
 
 module.exports = {
   insertWarning,
+  getWarningInfo
 }

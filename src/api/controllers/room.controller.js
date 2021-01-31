@@ -16,6 +16,8 @@ const _RoomModel = require('../models/room.models')
 const _LectureModel = require('../models/lms.models')
 const _TestModel = require('../models/test_concentration')
 const _ChatModel = require('../models/chat.models')
+const _RequestModel = require('../models/request.model')
+
 const { jwtExpirationInterval } = require("../../config/vars")
 const moment = require("moment");
 const user = require('../../../sql/user');
@@ -104,6 +106,74 @@ const joinRoom = async (req, res, next) => {
 
 }
 
+const getAllRequestQuestion = async (req, res, next) =>{
+  try{
+    const {userRoomId } = req.query
+    const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
+    const rows = await _RequestModel.getAllRequestQuestion(room_id)
+    return res.status(200).send({
+      result: false,
+      data: rows,
+      message: '해당하는룸의 요청 리스트'
+    })
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+}
+
+const getRequestQuestionByUser = async (req, res, next) => {
+  try{
+    const {userRoomId } = req.query
+    const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
+    const { user_idx  } = req.user;
+    const rows = await _RequestModel.getRequestQuestionByUser(room_id, user_idx)
+    return res.status(200).send({
+      result: false,
+      data: rows,
+      message: '해당하는 유저 최신한 음성질문 요청'
+    })
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+}
+
+const getAllRequestLecOut = async (req, res, next) =>{
+  try{
+    const {userRoomId } = req.query
+    const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
+    const rows = await _RequestModel.getAllRequestLecOut(room_id)
+    return res.status(200).send({
+      result: false,
+      data: rows,
+      message: '해당하는 유저 최신한 음성질문 요청'
+    })
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+}
+
+const getRequestLecOutByUser = async (req, res, next) => {
+  try{
+    const {userRoomId } = req.query
+    const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
+    const { user_idx  } = req.user;
+    const rows = await _RequestModel.getRequestLecOutByUser(room_id, user_idx)
+    return res.status(200).send({
+      result: false,
+      data: rows,
+      message: '해당하는룸의 요청 리스트'
+    })
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+}
+
+
+
 const upFile = async (req, res, next) => {
   const { user_idx, user_name } = req.user;
   const files = req.files || 'NULL';
@@ -148,6 +218,8 @@ const upFile = async (req, res, next) => {
  * 만약에 방을 생성했으면 해당하는 방을 들어감
  * 또는 방을 생성하지 않으면 새로 방을 하나 생성함 
  */
+
+//!refactory
 const createRoom = async (req, res, next) => {
   try {
     const { user_idx, user_tp } = req.user;
@@ -189,7 +261,7 @@ const createRoom = async (req, res, next) => {
             message: '방을 생성 성공'
           })
         }
-      } 
+      }
       //없으면 생성함
       const room = await _RoomModel.insertRoom(user_idx, lec_idx, lectureInfo.lecture_nm, redirectInfo.id, lectureInfo.stime, lectureInfo.etime)
 
@@ -393,8 +465,8 @@ const createRoom = async (req, res, next) => {
 // }
 //!refactor sql query
 const getLectureInfo = async (req, res, next) => {
-  const { userroom_id } = req.query
-  const { room_id } = await _RoomModel.getUserRoomById(userroom_id)
+  const { userRoomId } = req.query
+  const { room_id } = await _RoomModel.getUserRoomById(userRoomId)
   const { lec_idx } = await _RoomModel.getRoomById(room_id)
   let lecInfo = await _LectureModel.getLectureByLecIdx(lec_idx)
   if (room_id && lec_idx) {
@@ -454,5 +526,9 @@ module.exports = {
   iceServerList,
   upFile,
   getLectureInfo,
-  upTestConcentration
+  upTestConcentration,
+  getAllRequestQuestion,
+  getRequestQuestionByUser,
+  getAllRequestLecOut,
+  getRequestLecOutByUser
 }

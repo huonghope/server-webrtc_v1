@@ -20,6 +20,10 @@ const {
  */
 
 let meetingRoomMap = {};
+// setTimeout(() => {
+//   console.log("null meeting Roommap")
+//   meetingRoomMap = {}
+// }, 2000);
 const initSockets = (io) => {
   io.use(socketioJwt.authorize({
     secret: jwtSecret,
@@ -37,7 +41,6 @@ const initSockets = (io) => {
       //접근한 유저룸의 정보
       const userRoom = await getUserRoomById(roomId)
       const { id, room_id, host_user } = userRoom;
-
       console.log("socket connected", user.user_name)
 
       //유저를 존재하면 유저룸테이블에서 Socket Id를 업데이트
@@ -69,10 +72,17 @@ const initSockets = (io) => {
       })
 
       socket.on('disconnect', () => {
+        console.log("DELETE USER FORM MAP SIZE BEFORE: ", currentUserRoomMap.size)
+        for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
+          console.log(_socketID)
+        }
+
         currentUserRoomMap.delete(socket.id)
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
-        console.log("delete user", user.user_name)
+        console.log("DELETE USER FORM MAP SOCKET ID: ", socket.id)
+        console.log("DELETE USER FORM MAP SIZE AFTER: ", currentUserRoomMap.size)
+        console.log("DELETE USER FORM MAP: ", user.user_name)
       })
 
       //webRTC socket on handling
@@ -102,8 +112,7 @@ const initSockets = (io) => {
       // socket.on('user-send-comeback-lec', (data) => courseSocketController.testConcentration(socket, data, currentUserRoomMap, user))
 
       const disconnectedPeer = (socketID) => {
-        const _connectedPeers = currentUserRoomMap
-        for (const [_socketID, _socket] of _connectedPeers.entries()) {
+        for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
           _socket.emit('peer-disconnected', {
             socketID
           })

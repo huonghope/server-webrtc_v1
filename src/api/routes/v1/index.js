@@ -7,6 +7,7 @@ const express = require('express');
 
 const userRoutes = require("./user.route")
 const roomRoutes = require("./room.route")
+const WarningRoutes = require("./warning.route")
 const lmsRouters = require("./lms.route")
 const chatRouters = require("./chat.route")
 
@@ -27,6 +28,7 @@ router.get('/', (req, res, next) => { //default room
 router.use('/docs', express.static('docs'));
 router.use('/user', userRoutes);
 router.use('/room', roomRoutes);
+router.use('/warning', WarningRoutes);
 router.use('/lms', lmsRouters);
 router.use('/chat', chatRouters);
 // router.use('/auth', authRoutes);

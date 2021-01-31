@@ -29,6 +29,15 @@ const insertDisableChat = async (user_idx, room_id, status) => {
     console.log(error) 
   }
 }
+const updateDisableChat = async (user_idx, room_id, status) => {
+  try {
+    const [row] = await db.query(sql.chat.updateDisableChat, [status, user_idx, room_id])
+    if(row.length !== 0)
+      return getChatById(row.insertId)
+  } catch (error) {
+    console.log(error) 
+  }
+}
 const insertUpFile = async(filename, path, room_id, user_idx, size, mimetype) => {
   try {
     const [row] = await db.query(sql.chat.insertUpFile, [filename, path, room_id, user_idx, size, mimetype])
@@ -56,7 +65,15 @@ const getFileInfoById = async (id) => {
     console.log(error)
   }
 }
-
+const getDisableChat = async(userId, roomId) => {
+  try {
+    const [row] = await db.query(sql.chat.getDisableChat, [userId, roomId])
+    if(row.length !== 0)
+      return row[0]
+  } catch (error) {
+    console.log(error)
+  }
+}
 const getListMessageByRoomIdAndUserId = async(room_id, user_idx) => {
   try {
     const [row] = await db.query(sql.chat.getListMessageByRoomIdAndUserId, [room_id, user_idx])
@@ -115,5 +132,7 @@ module.exports = {
   insertUpFile,
   insertChatFile,
   getFileInfoById,
-  getListMessageByRoomIdForStudent
+  getListMessageByRoomIdForStudent,
+  getDisableChat,
+  updateDisableChat
 }
