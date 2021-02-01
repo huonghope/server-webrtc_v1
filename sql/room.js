@@ -6,16 +6,7 @@ module.exports = {
     insertUserRoom: 'insert into plass_userroom(user_idx, room_id, host_user, device) values (?, ?, ?, ?)',
 
     //SELECT
-    getAllRoom : 'select * from plass_room',
-    getInformationRoomByName: 'select * from plass_room where roomname = ? and username = ?',
-    getInformationRoomByAllName: 'select * from plass_room where roomname = ?',
-    getRoomsByUsername: 'select * from plass_room where username = ?',
-    getListUserByRoomname: 'SELECT * FROM webrtc.plass_userroom where roomname = ? order by host_user DESC ;',
-    getRoomByRoomname: 'select * from plass_room where roomname = ?',
     getRoomById: "select * from plass_room where id = ?",
-    getRoomByRoomName: "select * from plass_userroom where roomname = ?",
-    getRoomUserByUserName: "select * from plass_userroom where username = ?",
-    getRoomByRedirectId: "select * from plass_room where redirect_id = ?",
     getNearestRoomByRedirectId: "select * from plass_room where redirect_id = ? order by id desc LIMIT 1" ,
     getListUserByRoomId: "select ur.*,u.user_name,user_tp from plass_userroom as ur, plass_user as u where u.user_idx = ur.user_idx and ur.room_id = ?",
     selectUserRoomByIdAndUserId: "select * from plass_userroom where id = ? and user_idx = ?",

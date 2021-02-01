@@ -21,6 +21,14 @@ const insertUserRoom = async(user_idx, room_id, host_user, device) => {
     console.log(error)    
   }
 }
+const getListUserByRoomId = async (roomId) => {
+  try {
+    const [row] = await db.query(sql.room.getListUserByRoomId, [roomId])
+    return row
+  } catch (error) {
+    console.log(error)    
+  }
+}
 const selectUserRoomByIdAndUserId = async (userRoomId, userId) => {
   try {
     const [row] = await db.query(sql.room.selectUserRoomByIdAndUserId, [userRoomId, userId])
@@ -61,42 +69,11 @@ const getUserRoomById = async(id) => {
     console.log(error)    
   }
 }
-const getRoomByRedirectKey = async(key) => {
-  try {
-    const [row] = await db.query(sql.room.getRoomByRedirectId, [key])
-    if(row.length !== 0)
-      return row[0]
-    return null
-  } catch (error) {
-    console.log(error)    
-  }
-}
 const getHostUserRoomInfo = async(room_id) => {
   try {
     const [row] = await db.query(sql.room.getHostUserRoomInfo, [room_id])
     if(row.length !== 0)
       return row[0]
-    return null
-  } catch (error) {
-    console.log(error)    
-  }
-}
-const getRoomByRoomName = async(roomname) => {
-  try {
-    const [row] = await db.query(sql.room.getRoomByRoomName, [roomname])
-    if(row.length !== 0)
-      return row
-    return null
-  } catch (error) {
-    console.log(error)    
-  }
-}
-
-const getRoomUserByUserName = async(username) => {
-  try {
-    const [row] = await db.query(sql.room.getRoomUserByUserName, [username])
-    if(row.length !== 0)
-      return row
     return null
   } catch (error) {
     console.log(error)    
@@ -186,12 +163,9 @@ const getUserRoomNearestByUserId = async (userId) => {
 
 module.exports = {
   insertRoom,
-  getRoomUserByUserName,
   insertUserRoom,
   insertSocketId,
-  getRoomByRoomName,
   getRoomByLecIdxAndUserIdx,
-  getRoomByRedirectKey,
   getNearestRoom,
   getUserRoomById,
   getRoomById,
@@ -202,4 +176,5 @@ module.exports = {
   getUserRoomNearestByUserId,
   getUserRoomNearestToday,
   updateStateForUserRoom,
+  getListUserByRoomId
 }

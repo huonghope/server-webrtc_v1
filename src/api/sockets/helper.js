@@ -23,6 +23,7 @@ const getUserRoomById = async(id) => {
   }
 }
 
+
 const insertSocketIdToUserRoom = async(socketId, id) => {
   try {
     const insertRow = await _RoomModel.insertSocketId(socketId, id);

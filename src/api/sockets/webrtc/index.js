@@ -33,8 +33,9 @@ const webRTCSocketController = {
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID === data.socketID.remote) {
                 socket.emit('answer', {
-                    sdp: data.payload,
-                    socketID: data.socketID.local
+                        sdp: data.payload,
+                        socketID: data.socketID.local,
+                        peerCount: _connectedPeers.size
                     }
                 )
             }

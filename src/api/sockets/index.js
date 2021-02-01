@@ -7,6 +7,8 @@ const courseSocketController = require('./course')
 const db = require("../../config/db-connection")
 const sql = require("../../../sql")
 
+const _RoomModel = require('../models/room.models')
+
 const {
   getUserInfo,
   getUserRoomById,
@@ -44,12 +46,11 @@ const initSockets = (io) => {
       console.log("socket connected", user.user_name)
 
       //유저를 존재하면 유저룸테이블에서 Socket Id를 업데이트
-      if (user) {
-        await insertSocketIdToUserRoom(socket.id, id)
-      }
-
+      
       //해당하는 유저롬의 Map의 키를 설정
       let userRoomKey = room_id;
+      
+      
       if (!meetingRoomMap[userRoomKey]) {
         meetingRoomMap[userRoomKey] = new Map();
         meetingRoomMap[userRoomKey].set(socket.id, socket)
@@ -57,9 +58,19 @@ const initSockets = (io) => {
       
       //Socket Id는 Map에서 업데이트
       meetingRoomMap[userRoomKey] = await updateSocketId(meetingRoomMap[userRoomKey], socket, host_user)
-
-      const currentUserRoomMap = meetingRoomMap[userRoomKey];
-
+      
+      let currentUserRoomMap = meetingRoomMap[userRoomKey];
+      
+      if (user) {
+        await insertSocketIdToUserRoom(socket.id, id)
+        const rows = await _RoomModel.getListUserByRoomId(userRoomKey)
+        for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
+          const filter = rows.filter(e => e.socket_id === _socketID)
+          if(filter.length === 0){
+            currentUserRoomMap.delete(_socketID)
+          }
+        }
+      }
       //!확인필요함
       updateStateForUserRoom(id, 1)
       socket.emit('user-role', { userRole: (user.user_tp === 'T' || user.user_tp === 'I') ? true : false })
@@ -72,17 +83,16 @@ const initSockets = (io) => {
       })
 
       socket.on('disconnect', () => {
-        console.log("DELETE USER FORM MAP SIZE BEFORE: ", currentUserRoomMap.size)
+        console.log("===========================================DELETE USER FORM MAP SIZE BEFORE===========================================: ", currentUserRoomMap.size)
         for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
           console.log(_socketID)
         }
-
         currentUserRoomMap.delete(socket.id)
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
-        console.log("DELETE USER FORM MAP SOCKET ID: ", socket.id)
-        console.log("DELETE USER FORM MAP SIZE AFTER: ", currentUserRoomMap.size)
-        console.log("DELETE USER FORM MAP: ", user.user_name)
+        console.log("===========================================DELETE USER FORM MAP SOCKET ID  ===========================================: ", socket.id)
+        console.log("===========================================DELETE USER FORM MAP SIZE AFTER ===========================================: ", currentUserRoomMap.size)
+        console.log("===========================================DELETE USER FORM MAP            ===========================================: ", user.user_name)
       })
 
       //webRTC socket on handling
