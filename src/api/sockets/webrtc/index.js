@@ -1,3 +1,4 @@
+const { getFirstValueMap } = require('../helper')
 //!강사한테만 socket를 구분해야됨
 const webRTCSocketController = {
     /**
@@ -13,14 +14,22 @@ const webRTCSocketController = {
      * - 강사인 경우에는 peer: 1 ~ N
      * - 일단 유저인 경우에는: 1 ~ 1
      */
-    onlinePeers:  (mainSocket, data, meetingRoomMap, user, userRoom) => {
+    onlinePeers:  async  (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
         console.log("MAP SIZE", meetingRoomMap.size)
-        //강사
-        const [socketID, _socket] =  _connectedPeers.entries().next().value;
+        
+        // const [socketID, _socket] =  _connectedPeers.entries().next().value;
+        // 강사는 나갔을때 
+        if(! await getFirstValueMap(_connectedPeers, userRoom.room_id))
+        {
+            return;
+        }
+        const [socketID, _socket] =  await getFirstValueMap(_connectedPeers, userRoom.room_id);
         if (socketID !== data.socketID.local) { //일단 유저
+            console.log(socketID)
             mainSocket.emit('online-peer', socketID) 
         }else{  //강사인 경우에는 다른 유저를 연결함
+            console.log(socketID)
             for (const [__socketID, __socket] of _connectedPeers.entries()) {
                 if (__socketID !== data.socketID.local) {
                     mainSocket.emit('online-peer', __socketID) 

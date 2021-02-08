@@ -34,9 +34,15 @@ const insertSocketIdToUserRoom = async(socketId, id) => {
   }
 }
 
-const getFirstValueMap = (map) => {
+const getFirstValueMap = async (map, roomId = null) => {
     if(map){
-      return map.entries().next().value
+      const [socketID, _socket] = map.entries().next().value;
+      const userRoomHost = await _RoomModel.getHostUserRoomInfo(roomId)
+      if(userRoomHost.socket_id === socketID){
+        return map.entries().next().value
+      }else{
+        return null
+      }
     }
     return null
 }

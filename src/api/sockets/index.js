@@ -42,6 +42,7 @@ const initSockets = (io) => {
 
       //접근한 유저룸의 정보
       const userRoom = await getUserRoomById(roomId)
+      if(!userRoom) return;
       const { id, room_id, host_user } = userRoom;
       console.log("socket connected", user.user_name)
 
@@ -64,12 +65,13 @@ const initSockets = (io) => {
       if (user) {
         await insertSocketIdToUserRoom(socket.id, id)
         const rows = await _RoomModel.getListUserByRoomId(userRoomKey)
-        for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
-          const filter = rows.filter(e => e.socket_id === _socketID)
-          if(filter.length === 0){
-            currentUserRoomMap.delete(_socketID)
-          }
-        }
+        //!문제가 있음
+        // for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
+        //   const filter = rows.filter(e => e.socket_id === _socketID)
+        //   if(filter.length === 0){
+        //     currentUserRoomMap.delete(_socketID)
+        //   }
+        // }
       }
       //!확인필요함
       updateStateForUserRoom(id, 1)
@@ -84,9 +86,9 @@ const initSockets = (io) => {
 
       socket.on('disconnect', () => {
         console.log("===========================================DELETE USER FORM MAP SIZE BEFORE===========================================: ", currentUserRoomMap.size)
-        for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
-          console.log(_socketID)
-        }
+        // for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
+        //   console.log(_socketID)
+        // }
         currentUserRoomMap.delete(socket.id)
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
@@ -114,7 +116,7 @@ const initSockets = (io) => {
       socket.on('user-cancel-request-question', (data) => courseSocketController.userCancelRequestQuestion(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('user-request-lecOut', (data) => courseSocketController.userRequestOut(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('user-cancel-request-lecOut', (data) => courseSocketController.userCancelRequestLecOut(socket, data, currentUserRoomMap, user, userRoom))
-      socket.on('user-test-concentration', (data) => courseSocketController.testConcentration(socket, data, currentUserRoomMap, user))
+      socket.on('user-test-concentration', (data) => courseSocketController.testConcentration(socket, data, currentUserRoomMap, user, userRoom))
 
       socket.on('host-send-process-request', (data) => courseSocketController.actionForUserRequest(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('host-send-warning', (data) => courseSocketController.actionWarningUser(socket, data, currentUserRoomMap, user, userRoom))

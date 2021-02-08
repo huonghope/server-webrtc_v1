@@ -16,6 +16,7 @@ module.exports = {
   where request.id = b.id
   and request.user_idx = ur.user_idx
   and request.room_id = ur.room_id
+  and request.room_id = ?
   `,
 
   //REQUEST LECOUT
@@ -34,5 +35,7 @@ module.exports = {
   ( select MAX(rq.id) as id ,rq.user_idx from plass_req_lecout as rq group by rq.user_idx ) as b
   where request.id = b.id
   and request.user_idx = ur.user_idx
-  and request.room_id = ur.room_id`,
+  and request.room_id = ur.room_id
+  and request.room_id = ?
+  `,
 }

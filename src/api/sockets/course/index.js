@@ -29,7 +29,7 @@ const courseSocketController = {
         let reqInfo = await _RequestModel.insertRequestQuestion(user_idx, room_id, 'waiting')
 
         //강사한테 알림(화면)
-        const [socketID, _socket] = getFirstValueMap(meetingRoom);
+        const [socketID, _socket] = await getFirstValueMap(meetingRoom, room_id);
         _socket.emit('alert-host-question', {
             status: 'waiting',
             remoteSocketId: mainSocket.id,
@@ -53,13 +53,13 @@ const courseSocketController = {
     userCancelRequestQuestion: async (mainSocket, data, meetingRoom, user, userRoom) => {
         const { status } = data
         const { room_id } = userRoom
-        const [socketID, _socket] = getFirstValueMap(meetingRoom);
+        const [socketID, _socket] = await getFirstValueMap(meetingRoom, room_id);
         const { user_idx } = user 
-        mainSocket.emit('alert-user-process-req-question', status)
-
+        
         let currentTime = moment().format("YYYY-MM-DD HH:mm:ss")
         let reqNearest  = await _RequestModel.getRequestQuestionNearest(user_idx, room_id)
         let reqInfo
+        mainSocket.emit('alert-user-process-req-question', status)
         if(reqNearest)
         {
             const { req_status } = reqNearest
@@ -88,7 +88,7 @@ const courseSocketController = {
         let reqInfo = await _RequestModel.insertRequestLecOut(user_idx, room_id, 'waiting')
 
         //강사한테 요청한 학생이 있음
-        const [socketID, _socket] = getFirstValueMap(meetingRoom);
+        const [socketID, _socket] = await getFirstValueMap(meetingRoom, room_id);
         _socket.emit('alert-host-lecOut', {
             status: status,
             remoteSocketId: mainSocket.id,
@@ -112,7 +112,7 @@ const courseSocketController = {
     userCancelRequestLecOut: async (mainSocket, data, meetingRoom, user, userRoom) => {
         const { status } = data
         const { room_id } = userRoom
-        const [socketID, _socket] = getFirstValueMap(meetingRoom);
+        const [socketID, _socket] = await getFirstValueMap(meetingRoom, room_id);
         const { user_idx } = user
         mainSocket.emit('alert-user-process-req-lecOut', status)
 
@@ -220,17 +220,16 @@ const courseSocketController = {
                 await _WarningModel.insertWarning(userId, room_id, newMessage.id)
                 let resMessage = await _ChatModel.convertResponseMessage(newMessage)
                 resMessage.sender.username = userInfo.user_name
-
-                console.log(resMessage)
                 _socket.emit('alert-user-warning', resMessage)
                 return;
             }
         }
     },
     //집중도 테스트
-    testConcentration: (mainSocket, data, meetingRoom, user) => {
+    testConcentration: async (mainSocket, data, meetingRoom, user, userRoom) => {
         const _connectedPeers = meetingRoom
-        const [_socketID, _socket] = getFirstValueMap(meetingRoom);
+        const { room_id } = userRoom
+        const [_socketID, _socket] = await getFirstValueMap(meetingRoom, room_id);
         
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== _socketID) { //강사제외함
