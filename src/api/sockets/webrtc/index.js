@@ -25,8 +25,9 @@ const webRTCSocketController = {
             return;
         }
         const [socketID, _socket] =  await getFirstValueMap(_connectedPeers, userRoom.room_id);
+        console.log(socketID,  data.socketID.local)
         if (socketID !== data.socketID.local) { //일단 유저
-            console.log(socketID)
+            console.log("======================================USER CONNECT TO HOST======================================", socketID)
             mainSocket.emit('online-peer', socketID) 
         }else{  //강사인 경우에는 다른 유저를 연결함
             console.log(socketID)
@@ -54,6 +55,7 @@ const webRTCSocketController = {
         const _connectedPeers = meetingRoomMap
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID === data.socketID.remote) {
+                console.log("change cadidate offter")
                 socket.emit('offer', {
                     sdp: data.payload,
                     socketID: data.socketID.local

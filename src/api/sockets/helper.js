@@ -1,5 +1,6 @@
 const _UserModel = require("../models/user.models")
-const _RoomModel = require("../models/room.models")
+const _RoomModel = require("../models/room.models");
+const { convertResponseMessage } = require("../models/chat.models");
 
 
 
@@ -57,10 +58,24 @@ const updateStateForUserRoom = async(userRoomId, state) => {
 }
 //first value
 const updateSocketId = async (meetingRoomMap, socket, role) => {
+
   //이사람을 host인지 검사
+  //!재접속문제 될수있음.
   if(role) //host user
-    return meetingRoomMap = new Map([[socket.id, socket], ...meetingRoomMap]);
-  return meetingRoomMap.set(socket.id, socket);
+  {
+    // console.log("HOST SOCKET ID", socket.id)
+    // meetingRoomMap = new Map([[socket.id, socket], ...meetingRoomMap]);
+    // for (const [_socketID, _socket] of meetingRoomMap.entries()) {
+    //   console.log(_socketID)
+    // }
+    
+    meetingRoomMap = new Map();
+    meetingRoomMap.set(socket.id, socket)
+    return meetingRoomMap;
+  }else{
+    console.log("set first map for student");
+    return meetingRoomMap.set(socket.id, socket);
+  }
 }
 const displayMapSocket = (map) => {
   for (const [_socketID, _socket] of map.entries()) {

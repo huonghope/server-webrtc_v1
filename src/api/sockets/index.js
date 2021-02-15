@@ -54,18 +54,24 @@ const initSockets = (io) => {
       
       if (!meetingRoomMap[userRoomKey]) {
         meetingRoomMap[userRoomKey] = new Map();
-        meetingRoomMap[userRoomKey].set(socket.id, socket)
+        // meetingRoomMap[userRoomKey].set(socket.id, socket)
       }
       
       //Socket Id는 Map에서 업데이트
       meetingRoomMap[userRoomKey] = await updateSocketId(meetingRoomMap[userRoomKey], socket, host_user)
+      console.log("SIZE", meetingRoomMap[userRoomKey].size)
       
       let currentUserRoomMap = meetingRoomMap[userRoomKey];
+
+      for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
+        console.log("AFTER SISE", _socketID)
+      }
       
       if (user) {
         await insertSocketIdToUserRoom(socket.id, id)
-        const rows = await _RoomModel.getListUserByRoomId(userRoomKey)
-        //!문제가 있음
+        // const rows = await _RoomModel.getListUserByRoomId(userRoomKey)
+        // console.log(user.user_name)
+        // !문제가 있음
         // for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
         //   const filter = rows.filter(e => e.socket_id === _socketID)
         //   if(filter.length === 0){
@@ -85,17 +91,11 @@ const initSockets = (io) => {
       })
 
       socket.on('disconnect', () => {
-        console.log("===========================================DELETE USER FORM MAP SIZE BEFORE===========================================: ", currentUserRoomMap.size)
-        // for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
-        //   console.log(_socketID)
-        // }
-        currentUserRoomMap.delete(socket.id)
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
-        console.log("===========================================DELETE USER FORM MAP SOCKET ID  ===========================================: ", socket.id)
-        console.log("===========================================DELETE USER FORM MAP SIZE AFTER ===========================================: ", currentUserRoomMap.size)
-        console.log("===========================================DELETE USER FORM MAP            ===========================================: ", user.user_name)
+        console.log("===========================================DELETE USER FORM MAP SOCKET ID  ===========================================: ", socket.id, user.user_name)
       })
+      
 
       //webRTC socket on handling
       socket.on('onlinePeers', (data) => webRTCSocketController.onlinePeers(socket, data, currentUserRoomMap, user, userRoom))
@@ -107,9 +107,6 @@ const initSockets = (io) => {
       socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('host-req-user-disable-chat', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user, room_id))
       
-      // socket.on('action_user_disable_chatting', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user))
-      // socket.on('host-req-user-enable-chat', (data) => chatSocketController.actionUserEnableChatting(socket, data, currentUserRoomMap, user, room_id))
-      // socket.on('sent-message', (data) => chatSocketController.sendMessage(socket, data, currentUserRoomMap, user))
 
       //course component socket on handling
       socket.on('user-request-question', (data) => courseSocketController.userRequestQuestion(socket, data, currentUserRoomMap, user, userRoom))
