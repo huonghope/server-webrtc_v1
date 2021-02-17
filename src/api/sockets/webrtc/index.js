@@ -1,4 +1,4 @@
-const { getFirstValueMap } = require('../helper')
+const { getFirstValueMap, sleep } = require('../helper')
 //!강사한테만 socket를 구분해야됨
 const webRTCSocketController = {
     /**
@@ -72,6 +72,20 @@ const webRTCSocketController = {
                     candidate: data.payload,
                     socketID: data.socketID.local
                 })
+            }
+        }
+    },
+    shareScream: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
+        const _connectedPeers = meetingRoomMap
+        console.log(data.payload)
+        console.log(meetingRoomMap.size)
+        for (const [socketID, socket] of _connectedPeers.entries()) {
+            if (socketID !== mainSocket.id) {
+                socket.emit('share-scream', {
+                    shareScream: data.payload,
+                    peerCount: meetingRoomMap.size
+                })
+                await sleep(500);
             }
         }
     },

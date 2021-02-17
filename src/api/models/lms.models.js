@@ -7,16 +7,14 @@ const db = require("../../config/db-connection")
 const sql = require("../../../sql")
 const roles = ['user', 'admin'];
 const request = require("request");
-
-
+const { LMS_URL } = process.env
 const requestUserInfo = (userIdx, key) => new Promise(async (resolve, reject) => {
     const o = {
       format: 'urls',
     };
     const bodyString = JSON.stringify(o);
-    const host = 'www.lecplanet.co.kr/api';
+    const host = LMS_URL;
     const path = '/LoginInfoGet.php';
-
     const options = {
       url: `http://${host}${path}`,
       method: 'get',
@@ -36,8 +34,12 @@ const requestUserInfo = (userIdx, key) => new Promise(async (resolve, reject) =>
         console.log(`Error when get User info: ${error}`);
         return reject(error);
       }
-      const bodyJson = JSON.parse(body);
-      resolve(bodyJson);
+      try {
+        const bodyJson = JSON.parse(body);
+        resolve(bodyJson);
+      } catch (error) {
+        console.log(error)        
+      }
     });
 })
 
@@ -46,7 +48,7 @@ const requestLectureInfo = (lec_idx, key) => new Promise(async (resolve, reject)
     format: 'urls',
   };
   const bodyString = JSON.stringify(o);
-  const host = 'www.lecplanet.co.kr/api';
+  const host = LMS_URL;
   const path = '/LecterInfoGet.php';
 
   const options = {
@@ -68,7 +70,7 @@ const requestLectureInfo = (lec_idx, key) => new Promise(async (resolve, reject)
       if (error) {
         console.log(`Error when get User info: ${error}`);
         return reject(error);
-      }
+      } 
       const bodyJson = JSON.parse(body);
       resolve(bodyJson);
     } catch (error) {

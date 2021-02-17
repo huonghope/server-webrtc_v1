@@ -35,9 +35,7 @@ const { user } = require('../../../sql/index');
 const getListMessageByUserIAndRoomId = async (req, res, next) => {
   const { userRoomId } = req.query;
   const { user_idx, user_name, user_tp } = req.user;
-
   let userRoomInfo = await _RoomModel.getUserRoomById(userRoomId)
-
   let listResMessage = []
   let listMessage = []
   if(user_tp === 'T' || user_tp === 'I'){

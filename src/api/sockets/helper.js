@@ -82,7 +82,9 @@ const displayMapSocket = (map) => {
   }
 }
 
-
+const sleep = async (ms) => {
+  return new Promise((r) => setTimeout(() => r(), ms));
+}
 module.exports = {
   getFirstValueMap,
   getUserInfo,
@@ -90,5 +92,6 @@ module.exports = {
   updateSocketId,
   displayMapSocket,
   getUserRoomById,
-  updateStateForUserRoom
+  updateStateForUserRoom,
+  sleep
 };

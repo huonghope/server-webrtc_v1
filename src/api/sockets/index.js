@@ -91,6 +91,7 @@ const initSockets = (io) => {
       })
 
       socket.on('disconnect', () => {
+        currentUserRoomMap.delete(socket.id)
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
         console.log("===========================================DELETE USER FORM MAP SOCKET ID  ===========================================: ", socket.id, user.user_name)
@@ -102,6 +103,7 @@ const initSockets = (io) => {
       socket.on('offer', (data) => webRTCSocketController.offer(socket, data, currentUserRoomMap, user))
       socket.on('answer', (data) => webRTCSocketController.sdpAnswer(socket, data, currentUserRoomMap, user))
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, currentUserRoomMap, user))
+      socket.on('share-scream', (data) => webRTCSocketController.shareScream(socket, data, currentUserRoomMap, user, userRoom))
 
       //chat component socket on handling
       socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, currentUserRoomMap, user, userRoom))
