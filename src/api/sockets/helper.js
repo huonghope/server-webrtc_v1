@@ -37,7 +37,7 @@ const insertSocketIdToUserRoom = async(socketId, id) => {
 
 const getFirstValueMap = async (map, roomId = null) => {
     if(map){
-      const [socketID, _socket] = map.entries().next().value;
+      const [socketID, socket] = map.entries().next().value;
       const userRoomHost = await _RoomModel.getHostUserRoomInfo(roomId)
       if(userRoomHost.socket_id === socketID){
         return map.entries().next().value
@@ -73,7 +73,6 @@ const updateSocketId = async (meetingRoomMap, socket, role) => {
     meetingRoomMap.set(socket.id, socket)
     return meetingRoomMap;
   }else{
-    console.log("set first map for student");
     return meetingRoomMap.set(socket.id, socket);
   }
 }

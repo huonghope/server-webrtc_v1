@@ -87,7 +87,6 @@ const chatSocketController = {
             if(disableChat){
               let { c_status } = disableChat
               c_status = c_status ===  1 ? 0 : 1
-              console.log(userId, room_id, c_status)
               //있으며 디폴드 반대
               await _ChatModel.updateDisableChat(userId, room_id, c_status)
             }else{

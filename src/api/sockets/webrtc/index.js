@@ -16,8 +16,6 @@ const webRTCSocketController = {
      */
     onlinePeers:  async  (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
-        console.log("MAP SIZE", meetingRoomMap.size)
-        
         // const [socketID, _socket] =  _connectedPeers.entries().next().value;
         // 강사는 나갔을때 
         if(! await getFirstValueMap(_connectedPeers, userRoom.room_id))
@@ -25,15 +23,21 @@ const webRTCSocketController = {
             return;
         }
         const [socketID, _socket] =  await getFirstValueMap(_connectedPeers, userRoom.room_id);
-        console.log(socketID,  data.socketID.local)
         if (socketID !== data.socketID.local) { //일단 유저
-            console.log("======================================USER CONNECT TO HOST======================================", socketID)
             mainSocket.emit('online-peer', socketID) 
         }else{  //강사인 경우에는 다른 유저를 연결함
-            console.log(socketID)
             for (const [__socketID, __socket] of _connectedPeers.entries()) {
                 if (__socketID !== data.socketID.local) {
                     mainSocket.emit('online-peer', __socketID) 
+                }
+            }
+        }
+        //학생화면 해상도 수정함
+        let peerCount = meetingRoomMap.size
+        if(peerCount === 6 || peerCount === 17){
+            for (const [__socketID, __socket] of _connectedPeers.entries()) {
+                if(__socketID !== socketID){
+                    __socket.emit("alert-edit-scream", { levelConstraints: peerCount === 6 ? "QVGA" : "QQVGA" })
                 }
             }
         }
@@ -55,7 +59,6 @@ const webRTCSocketController = {
         const _connectedPeers = meetingRoomMap
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID === data.socketID.remote) {
-                console.log("change cadidate offter")
                 socket.emit('offer', {
                     sdp: data.payload,
                     socketID: data.socketID.local
@@ -77,15 +80,28 @@ const webRTCSocketController = {
     },
     shareScream: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
-        console.log(data.payload)
-        console.log(meetingRoomMap.size)
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== mainSocket.id) {
-                socket.emit('share-scream', {
+                socket.emit('alert-share-scream', {
                     shareScream: data.payload,
                     peerCount: meetingRoomMap.size
                 })
                 await sleep(500);
+            }
+        }
+    },
+    editStream: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
+        const _connectedPeers = meetingRoomMap
+        for (const [socketID, socket] of _connectedPeers.entries()) {
+            if (socketID !== mainSocket.id) {
+                if(data.payload){
+                    socket.emit("alert-edit-scream", { levelConstraints: "QQVGA" })
+                    await sleep(100);
+                }else{
+                    let peerCount = meetingRoomMap.size
+                    socket.emit("alert-edit-scream", { levelConstraints: peerCount <= 5 ? "VGA"  :  peerCount <= 16 ? "QVGA" : "QQVGA" })
+                    await sleep(100);
+                }
             }
         }
     },

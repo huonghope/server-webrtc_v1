@@ -44,7 +44,7 @@ const initSockets = (io) => {
       const userRoom = await getUserRoomById(roomId)
       if(!userRoom) return;
       const { id, room_id, host_user } = userRoom;
-      console.log("socket connected", user.user_name)
+      // console.log("socket connected", user.user_name)
 
       //유저를 존재하면 유저룸테이블에서 Socket Id를 업데이트
       
@@ -59,13 +59,8 @@ const initSockets = (io) => {
       
       //Socket Id는 Map에서 업데이트
       meetingRoomMap[userRoomKey] = await updateSocketId(meetingRoomMap[userRoomKey], socket, host_user)
-      console.log("SIZE", meetingRoomMap[userRoomKey].size)
       
       let currentUserRoomMap = meetingRoomMap[userRoomKey];
-
-      for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
-        console.log("AFTER SISE", _socketID)
-      }
       
       if (user) {
         await insertSocketIdToUserRoom(socket.id, id)
@@ -94,7 +89,15 @@ const initSockets = (io) => {
         currentUserRoomMap.delete(socket.id)
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
-        console.log("===========================================DELETE USER FORM MAP SOCKET ID  ===========================================: ", socket.id, user.user_name)
+        let peerCount = currentUserRoomMap.size
+        if(peerCount === 5 || peerCount === 16){
+            const [socketID, socket] = currentUserRoomMap.entries().next().value;
+            for (const [__socketID, __socket] of currentUserRoomMap.entries()) {
+                if(__socketID !== socketID){
+                    __socket.emit("alert-edit-scream", { levelConstraints: peerCount === 5 ? "VGA" : "QVGA" })
+                }
+            }
+        }
       })
       
 
@@ -104,6 +107,7 @@ const initSockets = (io) => {
       socket.on('answer', (data) => webRTCSocketController.sdpAnswer(socket, data, currentUserRoomMap, user))
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, currentUserRoomMap, user))
       socket.on('share-scream', (data) => webRTCSocketController.shareScream(socket, data, currentUserRoomMap, user, userRoom))
+      socket.on('edit-stream', (data) => webRTCSocketController.editStream(socket, data, currentUserRoomMap, user, userRoom))
 
       //chat component socket on handling
       socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, currentUserRoomMap, user, userRoom))

@@ -247,19 +247,5 @@ const courseSocketController = {
         }
         
     }
-    // testConcentrationFail: async (mainSocket, data, meetingRoom, user) => {
-    //     const { userRoomId } = data
-    //     const _connectedPeers = meetingRoom
-    //     console.log(userRoomId)
-    //     const { room_id }  = await _RoomModel.getUserRoomById(userRoomId)
-    //     let chat = await _ChatModel.insertChat(user.user_idx, "", "test_Concentration", room_id)
-
-    //     console.log(chat)
-    //     chat.username = user.user_name
-
-    //     //실패는 강사한테 알려줌
-    //     const [_socketID, _socket] = _connectedPeers.entries().next().value
-    //     _socket.emit('alert-host-test-concentration-fail', chat)
-    // }
 }
 module.exports = courseSocketController

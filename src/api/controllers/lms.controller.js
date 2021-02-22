@@ -44,7 +44,6 @@ const getOpenSource = async (req, res, next) => {
 }
 const openCourse = async (req, res, next) => {
   const { KEY: key ,TYPE: type, USER_IDX:  user_idx,SC_CODE:  sc_code, SCHUL_CODE: schul_code, LEC_IDX: lec_idx} = req.query;
-
   const userResponse = await _LmsModel.requestUserInfo(user_idx, key)
 
   //유저 정보를 저장함
