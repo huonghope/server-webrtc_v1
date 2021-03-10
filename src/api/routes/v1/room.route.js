@@ -20,9 +20,6 @@ var storage = multer.diskStorage({
 // var upload = multer({storage});
 var upload = multer({ storage: storage });
 
-
-// router.route('/')
-//     .get(controller.createRoom)
 router.route('/')
     .post(authorize(LOGGED_USER), roomController.createRoom)
 
@@ -41,18 +38,13 @@ router.route('/request-ques')
 router.route('/request-ques/user')
     .get(authorize(LOGGED_USER), roomController.getRequestQuestionByUser)
 
-
 router.route('/request-lecOut')
     .get(authorize(LOGGED_USER), roomController.getAllRequestLecOut)
 
 router.route('/request-lecOut/user')
     .get(authorize(LOGGED_USER), roomController.getRequestLecOutByUser)
 
-
 router.route('/test-concentration-fail')
     .post(authorize(LOGGED_USER), roomController.upTestConcentration)
-// router.route('/join')   
-//     .put(authorize(LOGGED_USER), roomController.joinRoom)
-
 
 module.exports = router;

@@ -1,28 +1,8 @@
-const httpStatus = require('http-status');
-const { omit, isArguments } = require("lodash");
-const _ = require("lodash");
-const multer = require("multer");
-const request = require('request');
-
-const fsExtra = require("fs-extra");
-const APIError = require("../utils/APIError");
-const ICETurnServer = require('../../config/ICETurnServer')
-
-const db = require("../../config/db-connection")
-const sql = require("../../../sql/index")
-
 const _UserModel = require("../models/user.models")
-const _RefreshToken = require("../models/refreshToken.model")
 const _RoomModel = require('../models/room.models')
 const _ChatModel = require('../models/chat.models')
-const { jwtExpirationInterval } = require("../../config/vars")
-const moment = require("moment");
-const compression = require('compression');
 
-const _LmsModel = require("../models/lms.models")
-const uuidv4 = require("uuid/v4");
-const { user } = require('../../../sql/index');
-
+// const { jwtExpirationInterval } = require("../../config/vars")
 /**
  * 강의를 개설할때 LMS부터 받은 정보들을 데이트베이서에서 자장함
  * URL를 생성한 후에 LMS를 다시 전달함
@@ -34,7 +14,7 @@ const { user } = require('../../../sql/index');
 //강사 및 일단 유저에따라 출력 다름
 const getListMessageByUserIAndRoomId = async (req, res, next) => {
   const { userRoomId } = req.query;
-  const { user_idx, user_name, user_tp } = req.user;
+  const { user_idx, user_tp } = req.user;
   let userRoomInfo = await _RoomModel.getUserRoomById(userRoomId)
   let listResMessage = []
   let listMessage = []

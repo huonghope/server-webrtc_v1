@@ -1,4 +1,7 @@
 const { getFirstValueMap, sleep } = require('../helper')
+
+const Logger = require('../../../config/logger')
+const logger = new Logger('webrtc-socket')
 //!강사한테만 socket를 구분해야됨
 const webRTCSocketController = {
     /**
@@ -80,6 +83,7 @@ const webRTCSocketController = {
     },
     shareScream: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
+        logger.info('share-scream', { userId: user.user_idx } )
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== mainSocket.id) {
                 socket.emit('alert-share-scream', {
@@ -92,6 +96,7 @@ const webRTCSocketController = {
     },
     editStream: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
+        logger.info('edit-stream', { userId: user.user_idx } )
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== mainSocket.id) {
                 if(data.payload){

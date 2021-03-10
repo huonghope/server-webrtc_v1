@@ -4,6 +4,9 @@ const _RoomModel = require('../../models/room.models')
 const { checkHostBySocketId } = require('../../models/helper.models')
 
 const { getFirstValueMap } = require('../helper')
+
+const Logger = require("../../../config/logger")
+const logger = new Logger('chat-socket')
 /**
  * 채팅방식
  * - 강사 ~ 모든 학생
@@ -29,16 +32,23 @@ const chatSocketController = {
    * 학생: 강사한테만 보냄
    */
   sentMessage:  async (mainSocket, data, meetingRoomMap, user, userRoom) => {
+    try {
+      logger.info('/sent-message', { data, roomId: userRoom.room_id })
       const { type } = data;
       const { uid } = data.message.sender;
       const { text: message } = data.message.data;
       const { room_id } = userRoom
+    
+      logger.setLogData({data, roomId: room_id})
+    
       const newMessage = await _ChatModel.insertChat(uid, message, type, room_id )
       const _connectedPeers = meetingRoomMap
-
+    
       let resMessage = await _ChatModel.convertResponseMessage(newMessage)
       resMessage.sender.username = user.user_name
-
+    
+    
+      logger.info('return response /sent-message', { resMessage })
       if(checkHostBySocketId(_connectedPeers, mainSocket.id)){
         for (let [socketID, socket] of _connectedPeers.entries()) {
           socket.emit('res-sent-message', resMessage)
@@ -48,6 +58,9 @@ const chatSocketController = {
         mainSocket.emit('res-sent-message', resMessage)
         _socket.emit('res-sent-message', resMessage)
       }
+    } catch (error) {
+      logger.error(error)      
+    }
   },
   
   /**
@@ -55,7 +68,11 @@ const chatSocketController = {
    * 강사: 모든 학생한테 보냄
    * 학생: 강사한테만 보냄
    */
-  actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, room_id) => {
+  actionUserDisableChatting: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
+    const { room_id } = userRoom
+    logger.setLogData(data)
+    logger.info('request to /user-disable-chatting', { data, userId: user.user_idx, roomId: room_id})
+
     const { remoteSocketId, userId } = data
     const _connectedPeers = meetingRoomMap
 
@@ -72,6 +89,8 @@ const chatSocketController = {
               let resMessage = await _ChatModel.convertResponseMessage(newMessage)
               let userInfo = await _UserModel.getUserByUserIdx(user_idx)
               resMessage.sender.username = userInfo.user_name
+
+              logger.info('return response /user-disable-chatting-all', { resMessage })
               _socket.emit('action_user_disable_chat', socketID)
               _socket.emit('alert_user_disable_chat', resMessage)
             }
@@ -79,6 +98,7 @@ const chatSocketController = {
       }
       return
     }
+
     for (const [socketID, _socket] of _connectedPeers.entries()) 
     {
         //!다시 확인할 필요함
@@ -99,20 +119,12 @@ const chatSocketController = {
             let userInfo = await _UserModel.getUserByUserIdx(userId)
             resMessage.sender.username = userInfo.user_name
             // newMessage.username = userInfo.user_name
+            logger.info('return response /user-disable-chatting', { resMessage })
             _socket.emit('action_user_disable_chat', socketID)
             _socket.emit('alert_user_disable_chat', resMessage)
         }
     }
   },
-  actionHostChat: (mainSocket, data, meetingRoomMap, user) => {
-    const _connectedPeers = meetingRoomMap
-      for (const [socketID, _socket] of _connectedPeers.entries()) {
-        // don't send to self
-        if (socketID !== data.socketID.local) {
-          _socket.emit('action_host_chat', socketID)
-        }
-      }
-  }
 }
 
 module.exports =  chatSocketController;

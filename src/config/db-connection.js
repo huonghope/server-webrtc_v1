@@ -9,5 +9,12 @@ var connectionPool = mysql.createPool({
 	connectionLimit: 100,
 	connectTimeout: 600000
 });
+connectionPool.getConnection((err, con) => {
+  if(err) {
+  
+    console.log("Database connect failed")
+  }
+})
+
 
 module.exports = connectionPool;

@@ -13,6 +13,9 @@ const _LectureModel = require('../models/lms.models')
 const { jwtExpirationInterval } = require("../../config/vars")
 const moment = require("moment");
 const { checkLectureAPI } = require('../models/helper.models');
+const Logger = require("../../config/logger")
+const logger = new Logger('user-controller')
+
 
 function generateTokenResponse(user, accessToken) {
   const tokenType = 'Bearer';
@@ -25,26 +28,6 @@ function generateTokenResponse(user, accessToken) {
     expiresIn,
   };
 }
-
-/**
- * Load user and append to req.
- * @public
- */
-exports.load = async (req, res, next, id) => {
-  try {
-    const user = await User.get(id);
-    req.locals = { user };
-    return next();
-  } catch (error) {
-    return next(error);
-  }
-};
-
-/**
- * Get user
- * @public
- */
-exports.get = (req, res) => res.json(req.locals.user.transform());
 
 /**
  * 해당하는 유저의 정보를 출력함
@@ -68,13 +51,16 @@ exports.getCurrentUser = async (req, res) => {
 exports.configUser = async (req, res) => {
   try {
     const {redirect_key, sl_idx, user_idx } = req.query;
+    logger.setLogData(req.query)
     let getRedirectUser = await _UserModel.getRedirectUserByLecIdxAndRedirectKey(sl_idx,redirect_key)
+
+    logger.info('request to /user ', {redirect_key, sl_idx, user_idx})
     
     //전달 접근키 및 강의일변호 맞는지
     if(getRedirectUser)
     {
       let userInfo = await _UserModel.getUserByUserIdx(user_idx)
-      //강사 또는 1번이상 접근한 일발 유저
+      //!강사 또는 1번이상 접근한 일발 유저
       if(userInfo){
         //유저의 정보를 한번 다시 업데이트
         let app_key = userInfo.app_key
@@ -87,7 +73,8 @@ exports.configUser = async (req, res) => {
           userName: userInfo.user_name,
           userTp: userInfo.user_tp
         }
-        
+        logger.setLogData(userInfo)
+        logger.info('return response /user teacher',{ userInfoToken })
         const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
         return res.send({
           result: true,
@@ -96,13 +83,14 @@ exports.configUser = async (req, res) => {
         })
         
       }else{ 
-        //학생은 처음에 접근할떄
+        //!학생은 처음에 접근할떄
         const hostUser = await _UserModel.getUserByUserIdx(getRedirectUser.user_idx);
         let userInfo = await _LectureModel.requestUserInfo(user_idx, hostUser.app_key);
         if(checkLectureAPI(userInfo)) //성공함
         {
           const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userInfo.map;
           userInfo = await _UserModel.insertUser({USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM, APP_KEY: hostUser.app_key})
+          logger.setLogData(userInfo)
           if(userInfo){
             const userInfoToken = {
               userId: userInfo.user_idx,
@@ -110,7 +98,7 @@ exports.configUser = async (req, res) => {
               userTp: userInfo.user_tp
             }
             const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
-        
+            logger.info('return response /user - student',{ userInfoToken })
             return res.send({
               result: true,
               data: { token, userInfoToken },
@@ -118,6 +106,7 @@ exports.configUser = async (req, res) => {
             })
           }
         }else{
+          logger.info('return reponse /user', {message: '접근 권한 확인 실패, 유저 확인 실패'})
           return res.send({
             result: false,
             data: [],
@@ -126,6 +115,7 @@ exports.configUser = async (req, res) => {
         }
       }
     }else{
+      logger.info('return response /user', {})
       return res.send({
         result: false,
         data: [],
@@ -133,11 +123,11 @@ exports.configUser = async (req, res) => {
       })
     }
   } catch (error) {
+    logger.info(error)
     console.log(error)
     next(error)
   }
 }
-
 
 exports.iceServerList = async (req, res, next) => {
   ICETurnServer()

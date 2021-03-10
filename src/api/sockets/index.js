@@ -3,12 +3,8 @@ const { jwtSecret } = require('../../config/vars');
 const chatSocketController = require('./chatting');
 const webRTCSocketController = require('./webrtc')
 const courseSocketController = require('./course')
-
-const db = require("../../config/db-connection")
-const sql = require("../../../sql")
-
-const _RoomModel = require('../models/room.models')
-
+const Logger = require('../../config/logger')
+const logger = new Logger('main-socket')
 const {
   getUserInfo,
   getUserRoomById,
@@ -42,6 +38,8 @@ const initSockets = (io) => {
 
       //접근한 유저룸의 정보
       const userRoom = await getUserRoomById(roomId)
+
+      logger.info('collect to socket', {user, userRoom})
       if(!userRoom) return;
       const { id, room_id, host_user } = userRoom;
       // console.log("socket connected", user.user_name)
@@ -90,6 +88,7 @@ const initSockets = (io) => {
         updateStateForUserRoom(id, 0)
         disconnectedPeer(socket.id)
         let peerCount = currentUserRoomMap.size
+        logger.info('disconnect to socket', {user, userRoom})
         if(peerCount === 5 || peerCount === 16){
             const [socketID, socket] = currentUserRoomMap.entries().next().value;
             for (const [__socketID, __socket] of currentUserRoomMap.entries()) {
@@ -111,9 +110,8 @@ const initSockets = (io) => {
 
       //chat component socket on handling
       socket.on('sent-message', (data) => chatSocketController.sentMessage(socket, data, currentUserRoomMap, user, userRoom))
-      socket.on('host-req-user-disable-chat', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user, room_id))
+      socket.on('host-req-user-disable-chat', (data) => chatSocketController.actionUserDisableChatting(socket, data, currentUserRoomMap, user, userRoom))
       
-
       //course component socket on handling
       socket.on('user-request-question', (data) => courseSocketController.userRequestQuestion(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('user-cancel-request-question', (data) => courseSocketController.userCancelRequestQuestion(socket, data, currentUserRoomMap, user, userRoom))
@@ -123,8 +121,7 @@ const initSockets = (io) => {
 
       socket.on('host-send-process-request', (data) => courseSocketController.actionForUserRequest(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('host-send-warning', (data) => courseSocketController.actionWarningUser(socket, data, currentUserRoomMap, user, userRoom))
-      socket.on('host-send-mute-mic-all', (data) => courseSocketController.stateMicAllStudent(socket, data, currentUserRoomMap, user))
-      // socket.on('user-send-comeback-lec', (data) => courseSocketController.testConcentration(socket, data, currentUserRoomMap, user))
+      socket.on('host-send-mute-mic-all', (data) => courseSocketController.stateMicAllStudent(socket, data, currentUserRoomMap, user, userRoom))
 
       const disconnectedPeer = (socketID) => {
         for (const [_socketID, _socket] of currentUserRoomMap.entries()) {

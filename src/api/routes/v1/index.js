@@ -31,9 +31,5 @@ router.use('/room', roomRoutes);
 router.use('/warning', WarningRoutes);
 router.use('/lms', lmsRouters);
 router.use('/chat', chatRouters);
-// router.use('/auth', authRoutes);
-// router.use('/contact', contactRoutes);
-// router.use('/message', messageRoutes);
-// router.use('/chat-group', chatGroupRoutes);
 
 module.exports = router;
