@@ -2,6 +2,9 @@ const _UserModel = require("../models/user.models")
 const _RoomModel = require('../models/room.models')
 const _ChatModel = require('../models/chat.models')
 
+
+const Logger = require('../../config/logger')
+const logger = new Logger('chat-contronller')
 // const { jwtExpirationInterval } = require("../../config/vars")
 /**
  * 강의를 개설할때 LMS부터 받은 정보들을 데이트베이서에서 자장함
@@ -13,8 +16,13 @@ const _ChatModel = require('../models/chat.models')
 
 //강사 및 일단 유저에따라 출력 다름
 const getListMessageByUserIAndRoomId = async (req, res, next) => {
+  try {
   const { userRoomId } = req.query;
   const { user_idx, user_tp } = req.user;
+
+  logger.setLogData(userRoomId)
+  logger.info('request to /chat - list message user', {userRoomId, user_idx, user_tp})
+
   let userRoomInfo = await _RoomModel.getUserRoomById(userRoomId)
   let listResMessage = []
   let listMessage = []
@@ -44,14 +52,15 @@ const getListMessageByUserIAndRoomId = async (req, res, next) => {
     }
     listResMessage.push(resMessage)
   }
-  try {
-    return res.send({
-      result: true,
-      data: listResMessage,
-      message: '전체 메시지를 리스트'
-    })
+ 
+  logger.info('return to reponse /chat - list message user', listResMessage)
+  return res.send({
+    result: true,
+    data: listResMessage,
+    message: '전체 메시지를 리스트'
+  })
   } catch (error) {
-    console.log(error)
+    logger.error(error)
     next(error)
   }
 };
