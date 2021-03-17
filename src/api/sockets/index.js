@@ -105,7 +105,7 @@ const initSockets = (io) => {
       socket.on('offer', (data) => webRTCSocketController.offer(socket, data, currentUserRoomMap, user))
       socket.on('answer', (data) => webRTCSocketController.sdpAnswer(socket, data, currentUserRoomMap, user))
       socket.on('candidate', (data) => webRTCSocketController.sendCandidate(socket, data, currentUserRoomMap, user))
-      socket.on('share-scream', (data) => webRTCSocketController.shareScream(socket, data, currentUserRoomMap, user, userRoom))
+      socket.on('share-screen', (data) => webRTCSocketController.shareScreen(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('edit-stream', (data) => webRTCSocketController.editStream(socket, data, currentUserRoomMap, user, userRoom))
 
       //chat component socket on handling

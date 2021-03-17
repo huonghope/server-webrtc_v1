@@ -81,13 +81,13 @@ const webRTCSocketController = {
             }
         }
     },
-    shareScream: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
+    shareScreen: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
-        logger.info('share-scream', { userId: user.user_idx } )
+        logger.info('share-screen', { userId: user.user_idx } )
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== mainSocket.id) {
-                socket.emit('alert-share-scream', {
-                    shareScream: data.payload,
+                socket.emit('alert-share-screen', {
+                    shareScreen: data.payload,
                     peerCount: meetingRoomMap.size
                 })
                 await sleep(500);
@@ -100,11 +100,11 @@ const webRTCSocketController = {
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== mainSocket.id) {
                 if(data.payload){
-                    socket.emit("alert-edit-scream", { levelConstraints: "QQVGA" })
+                    socket.emit("alert-edit-stream", { levelConstraints: "QQVGA" })
                     await sleep(100);
                 }else{
                     let peerCount = meetingRoomMap.size
-                    socket.emit("alert-edit-scream", { levelConstraints: peerCount <= 5 ? "VGA"  :  peerCount <= 16 ? "QVGA" : "QQVGA" })
+                    socket.emit("alert-edit-stream", { levelConstraints: peerCount <= 5 ? "VGA"  :  peerCount <= 16 ? "QVGA" : "QQVGA" })
                     await sleep(100);
                 }
             }

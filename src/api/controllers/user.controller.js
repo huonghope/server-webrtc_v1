@@ -52,13 +52,14 @@ exports.configUser = async (req, res) => {
   try {
     const {redirect_key, sl_idx, user_idx } = req.query;
     logger.setLogData(req.query)
-    let getRedirectUser = await _UserModel.getRedirectUserByLecIdxAndRedirectKey(sl_idx,redirect_key)
-
     logger.info('request to /user ', {redirect_key, sl_idx, user_idx})
+
+    let getRedirectUser = await _UserModel.getRedirectUserByLecIdxAndRedirectKey(sl_idx,redirect_key)
     
     //전달 접근키 및 강의일변호 맞는지
     if(getRedirectUser)
     {
+      logger.info('request to /user redirect-key', getRedirectUser)
       let userInfo = await _UserModel.getUserByUserIdx(user_idx)
       //!강사 또는 1번이상 접근한 일발 유저
       if(userInfo){
@@ -73,6 +74,7 @@ exports.configUser = async (req, res) => {
           userName: userInfo.user_name,
           userTp: userInfo.user_tp
         }
+
         logger.setLogData(userInfo)
         logger.info('return response /user teacher',{ userInfoToken })
         const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
@@ -98,7 +100,7 @@ exports.configUser = async (req, res) => {
               userTp: userInfo.user_tp
             }
             const token = generateTokenResponse(userInfoToken, await _UserModel.signJwtToken(userInfoToken));
-            logger.info('return response /user - student',{ userInfoToken })
+            logger.info('return response /user - student', userInfoToken)
             return res.send({
               result: true,
               data: { token, userInfoToken },
@@ -115,7 +117,11 @@ exports.configUser = async (req, res) => {
         }
       }
     }else{
-      logger.info('return response /user', {})
+      logger.info('return response /user', {
+        result: false,
+        data: [],
+        message: '접근 권한 확인 실패, 접근키 및 강의 일련번호 동일하지 않음'
+      })
       return res.send({
         result: false,
         data: [],
@@ -124,7 +130,6 @@ exports.configUser = async (req, res) => {
     }
   } catch (error) {
     logger.info(error)
-    console.log(error)
     next(error)
   }
 }
