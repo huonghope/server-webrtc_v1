@@ -68,7 +68,6 @@ const updateSocketId = async (meetingRoomMap, socket, role) => {
     // for (const [_socketID, _socket] of meetingRoomMap.entries()) {
     //   console.log(_socketID)
     // }
-    
     meetingRoomMap = new Map();
     meetingRoomMap.set(socket.id, socket)
     return meetingRoomMap;

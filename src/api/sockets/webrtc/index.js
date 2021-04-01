@@ -18,31 +18,36 @@ const webRTCSocketController = {
      * - 일단 유저인 경우에는: 1 ~ 1
      */
     onlinePeers:  async  (mainSocket, data, meetingRoomMap, user, userRoom) => {
-        const _connectedPeers = meetingRoomMap
-        // const [socketID, _socket] =  _connectedPeers.entries().next().value;
-        // 강사는 나갔을때 
-        if(! await getFirstValueMap(_connectedPeers, userRoom.room_id))
-        {
-            return;
-        }
-        const [socketID, _socket] =  await getFirstValueMap(_connectedPeers, userRoom.room_id);
-        if (socketID !== data.socketID.local) { //일단 유저
-            mainSocket.emit('online-peer', socketID) 
-        }else{  //강사인 경우에는 다른 유저를 연결함
-            for (const [__socketID, __socket] of _connectedPeers.entries()) {
-                if (__socketID !== data.socketID.local) {
-                    mainSocket.emit('online-peer', __socketID) 
+        try {
+            const _connectedPeers = meetingRoomMap
+            // const [socketID, _socket] =  _connectedPeers.entries().next().value;
+            // 강사는 나갔을때 
+            if(! await getFirstValueMap(_connectedPeers, userRoom.room_id))
+            {
+                return;
+            }
+            const [socketID, _socket] =  await getFirstValueMap(_connectedPeers, userRoom.room_id);
+            if (socketID !== data.socketID.local) { //일단 유저
+                mainSocket.emit('online-peer', socketID) 
+            }else{  //강사인 경우에는 다른 유저를 연결함
+                for (const [__socketID, __socket] of _connectedPeers.entries()) {
+                    if (__socketID !== data.socketID.local) {
+                        mainSocket.emit('online-peer', __socketID) 
+                    }
                 }
             }
-        }
-        //학생화면 해상도 수정함
-        let peerCount = meetingRoomMap.size
-        if(peerCount === 6 || peerCount === 17){
-            for (const [__socketID, __socket] of _connectedPeers.entries()) {
-                if(__socketID !== socketID){
-                    __socket.emit("alert-edit-scream", { levelConstraints: peerCount === 6 ? "QVGA" : "QQVGA" })
+            //학생화면 해상도 수정함
+            let peerCount = meetingRoomMap.size
+            console.log(peerCount)
+            if(peerCount === 6 || peerCount === 17){
+                for (const [__socketID, __socket] of _connectedPeers.entries()) {
+                    if(__socketID !== socketID){
+                        __socket.emit("alert-edit-stream", { levelConstraints: peerCount === 6 ? "QVGA" : "QQVGA" })
+                    }
                 }
             }
+        } catch (error) {
+            console.log(error)
         }
     },
     sdpAnswer: (mainSocket, data, meetingRoomMap, user) => {
@@ -84,6 +89,7 @@ const webRTCSocketController = {
     shareScreen: async (mainSocket, data, meetingRoomMap, user, userRoom) => {
         const _connectedPeers = meetingRoomMap
         logger.info('share-screen', { userId: user.user_idx } )
+        console.log("share", data.payload)
         for (const [socketID, socket] of _connectedPeers.entries()) {
             if (socketID !== mainSocket.id) {
                 socket.emit('alert-share-screen', {

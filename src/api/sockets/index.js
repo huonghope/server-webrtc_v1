@@ -40,6 +40,7 @@ const initSockets = (io) => {
       const userRoom = await getUserRoomById(roomId)
 
       logger.info('collect to socket', {user, userRoom})
+
       if(!userRoom) return;
       const { id, room_id, host_user } = userRoom;
       // console.log("socket connected", user.user_name)
@@ -48,13 +49,12 @@ const initSockets = (io) => {
       
       //해당하는 유저롬의 Map의 키를 설정
       let userRoomKey = room_id;
-      
-      
+    
       if (!meetingRoomMap[userRoomKey]) {
         meetingRoomMap[userRoomKey] = new Map();
         // meetingRoomMap[userRoomKey].set(socket.id, socket)
       }
-      
+ 
       //Socket Id는 Map에서 업데이트
       meetingRoomMap[userRoomKey] = await updateSocketId(meetingRoomMap[userRoomKey], socket, host_user)
       
@@ -72,6 +72,7 @@ const initSockets = (io) => {
         //   }
         // }
       }
+
       //!확인필요함
       updateStateForUserRoom(id, 1)
       socket.emit('user-role', { userRole: (user.user_tp === 'T' || user.user_tp === 'I') ? true : false })
@@ -93,7 +94,7 @@ const initSockets = (io) => {
             const [socketID, socket] = currentUserRoomMap.entries().next().value;
             for (const [__socketID, __socket] of currentUserRoomMap.entries()) {
                 if(__socketID !== socketID){
-                    __socket.emit("alert-edit-scream", { levelConstraints: peerCount === 5 ? "VGA" : "QVGA" })
+                    __socket.emit("alert-edit-stream", { levelConstraints: peerCount === 5 ? "VGA" : "QVGA" })
                 }
             }
         }
