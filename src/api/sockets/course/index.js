@@ -227,7 +227,7 @@ const courseSocketController = {
                                 reqLecOutInfo = await _RequestModel.updateRequestLecOutNearest(userId, room_id, result, currentTime)
                             }
                             logger.info('return response to /host-process-user-request(lecOut) - teacher', {
-                                reqInfo: reqQuestionInfo,
+                                reqInfo: reqLecOutInfo,
                                 remoteSocketId: remoteSocketId,
                                 status: result,
                                 type: type

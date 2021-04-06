@@ -22,4 +22,4 @@ module.exports = {
     }
   }),
   limits: { fileSize: fileLimitSize}
-}
+} 
