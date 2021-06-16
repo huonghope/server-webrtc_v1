@@ -70,6 +70,8 @@ const courseSocketController = {
             let reqNearest  = await _RequestModel.getRequestQuestionNearest(user_idx, room_id)
             let reqInfo
             mainSocket.emit('alert-user-process-req-question', status)
+
+            console.log(reqNearest)
             if(reqNearest)
             {
                 const { req_status } = reqNearest
@@ -86,6 +88,7 @@ const courseSocketController = {
                 type: 'request_question'
             })
         } catch (error) {
+            console.log(error)
             logger.error(error)            
         }
     },

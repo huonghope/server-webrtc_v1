@@ -99,7 +99,7 @@ const openCourse = async (req, res, next) => {
       logger.info('return response to /lms', {
         result: true,
         data: {
-          url: "https://rtc.lecplanet.com",
+          url: "https://devrtc.lecplanet.com",
           redirect_key: redirectUser.redirect_key,
           user_idx: userInfo.user_idx,
           sl_idx: lec_idx
@@ -109,7 +109,7 @@ const openCourse = async (req, res, next) => {
       return res.send({
         result: true,
         data: {
-          url: "https://rtc.lecplanet.com",
+          url: "https://devrtc.lecplanet.com",
           redirect_key: redirectUser.redirect_key,
           user_idx: userInfo.user_idx,
           sl_idx: lec_idx
