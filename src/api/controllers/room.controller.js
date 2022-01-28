@@ -19,6 +19,9 @@ const { jwtExpirationInterval } = require("../../config/vars")
 const moment = require("moment");
 const { checkHostBySocketId } = require("../models/helper.models")
 const { meetingRoomMap } = require('../sockets');
+const {getFirstValueKeyMap} = require('../sockets/helper');
+
+
 
 const Logger = require('../../config/logger')
 const logger = new Logger('room-controller')
@@ -230,6 +233,113 @@ const upFile = async (req, res, next) => {
     }
   }
 }
+const calculationTime = async (req, res, next) => {
+  try {
+    const {userRoomId} = req.body;
+    const {room_id, socket_id} = await _RoomModel.getUserRoomById(userRoomId);
+
+    console.log("set up finish")
+    if (!room_id) {
+      res.send({
+        result: false,
+        data: [],
+        message: '해당 룸이 존재하지 않음',
+      });
+    } else {
+      const {lec_idx} = await _RoomModel.getRoomById(room_id);
+      const lectureInfo = await _LectureModel.getLectureByLecIdx(lec_idx);
+      if (lectureInfo) {
+        const {stime, etime, lecture_date} = lectureInfo;
+        const startTime = moment(`${lecture_date} ${stime}`).format('MM/DD/YYYY HH:mm:ss');
+        const endTime = moment(`${lecture_date} ${etime}`).format('MM/DD/YYYY HH:mm:ss');
+        const currentTime = moment().locale('ko').format('MM/DD/YYYY HH:mm:ss');
+
+        const starTimeGetTime = new Date(startTime).getTime();
+        const endTimeGetTime = new Date(endTime).getTime();
+        const currentTimeGetTime = new Date(currentTime).getTime();
+
+
+        // 강의를 종료 되었음
+        if (currentTimeGetTime > endTimeGetTime) {
+          return res.status(200).send({
+            result: false,
+            data: [],
+            message: '해당 강의 종료 되었음',
+          });
+        } else if (currentTimeGetTime < starTimeGetTime) { // 강의 시작 안 되었음
+          return res.status(200).send({
+            result: true,
+            data: [],
+            message: '해당 강의 사직 아직 안 되었음',
+          });
+        }
+        // 남은 시간
+        const remainingTime = endTimeGetTime - currentTimeGetTime;
+
+        let status = {
+          level: 1,
+        };
+
+        const fiveMinutesByMillis = 5 * 60000;
+        if (remainingTime > fiveMinutesByMillis) {
+          // 5분전
+          setTimeout(async () => {
+            const _connectedPeers = meetingRoomMap[room_id];
+            status = {
+              level: 1,
+              time: 5,
+            };
+            const {_socketID: hostSocketId, _socket: hostSocket} = await getFirstValueKeyMap(_connectedPeers, room_id);
+            hostSocket.emit('alert-time-room', status);
+          }, (remainingTime - fiveMinutesByMillis));
+        }
+
+        const oneMinutesByBillis = 60000;
+        // 1분전
+        setTimeout(async () => {
+          const _connectedPeers = meetingRoomMap[room_id];
+          status = {
+            level: 2,
+            time: 1,
+          };
+          const {_socketID: hostSocketId, _socket: hostSocket} = await getFirstValueKeyMap(_connectedPeers, room_id);
+          hostSocket.emit('alert-time-room', status);
+        }, (remainingTime - oneMinutesByBillis));
+
+        // 10초
+        setTimeout(async () => {
+          const _connectedPeers = meetingRoomMap[room_id];
+          status.level = 3;
+          const {_socketID: hostSocketId, _socket: hostSocket} = await getFirstValueKeyMap(_connectedPeers, room_id);
+          hostSocket.emit('alert-time-room', status);
+        }, (remainingTime - (10 * 1000)));
+
+        // 강의 종료
+        setTimeout(async () => {
+          const _connectedPeers = meetingRoomMap[room_id];
+          status.level = 4;
+          const {_socketID: hostSocketId, _socket: hostSocket} = await getFirstValueKeyMap(_connectedPeers, room_id);
+          hostSocket.emit('alert-time-room', status);
+        }, remainingTime);
+
+        return res.send({
+          result: true,
+          data: [],
+          message: '해당 룸의 시간 세팅 완료',
+        });
+      } else {
+        res.send({
+          result: false,
+          data: [],
+          message: '해당 강의 존재하지 않음',
+        });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
 
 //방의 상태를 체그하고 
 /**
@@ -394,6 +504,7 @@ const createRoom = async (req, res, next) => {
       })
     }
   } catch (error) {
+    console.log(error)
     logger.error(error)
     next(error)
   }
@@ -606,6 +717,7 @@ module.exports = {
   createRoom,
   iceServerList,
   upFile,
+  calculationTime,
   getLectureInfo,
   upTestConcentration,
   getAllRequestQuestion,

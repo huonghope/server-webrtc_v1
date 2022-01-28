@@ -32,6 +32,10 @@ router.route('/upfile')
 router.route('/lecture')
     .get(authorize(LOGGED_USER), roomController.getLectureInfo)
 
+router.route('/calculat-time')
+    .post(authorize(LOGGED_USER),roomController.calculationTime);
+
+
 router.route('/request-ques')
     .get(authorize(LOGGED_USER), roomController.getAllRequestQuestion)
     

@@ -2,8 +2,21 @@
   "name": "server-webrtc",
   "version": "0.0.0",
   "private": true,
+  "bin": "app.js",
   "scripts": {
     "start": "node app.js"
+  },
+  "pkg": {
+    "scripts": "build/**/*.js",
+    "assets": [
+      "build/**/*",
+      "src/**/*"
+    ],
+    "targets": [
+      "node12-macos-x64",
+      "node12-win-x64"
+    ],
+    "outputPath": "dist"
   },
   "dependencies": {
     "bluebird": "^3.7.2",

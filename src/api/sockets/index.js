@@ -30,19 +30,21 @@ const initSockets = (io) => {
 
   io.on('connection', async (socket) => {
     try {
+      console.log("CONECTION")
       //접근한 유저 정보
       const user = await getUserInfo(socket.decoded_token.sub);
 
       //접근한 룸의Idd
       const { roomId } = socket.handshake.query
-
+      
       //접근한 유저룸의 정보
       const userRoom = await getUserRoomById(roomId)
-
+      
       logger.info('collect to socket', {user, userRoom})
-
+      
       if(!userRoom) return;
       const { id, room_id, host_user } = userRoom;
+      console.log(room_id)
       // console.log("socket connected", user.user_name)
 
       //유저를 존재하면 유저룸테이블에서 Socket Id를 업데이트
@@ -57,8 +59,10 @@ const initSockets = (io) => {
  
       //Socket Id는 Map에서 업데이트
       meetingRoomMap[userRoomKey] = await updateSocketId(meetingRoomMap[userRoomKey], socket, host_user)
+
       
       let currentUserRoomMap = meetingRoomMap[userRoomKey];
+      console.log(currentUserRoomMap.size)
       
       if (user) {
         await insertSocketIdToUserRoom(socket.id, id)
@@ -119,6 +123,7 @@ const initSockets = (io) => {
       socket.on('user-request-lecOut', (data) => courseSocketController.userRequestOut(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('user-cancel-request-lecOut', (data) => courseSocketController.userCancelRequestLecOut(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('user-test-concentration', (data) => courseSocketController.testConcentration(socket, data, currentUserRoomMap, user, userRoom))
+      socket.on('alert-speaking', (data) => courseSocketController.alertUserSpeaking(socket, data, currentUserRoomMap, user, userRoom));
 
       socket.on('host-send-process-request', (data) => courseSocketController.actionForUserRequest(socket, data, currentUserRoomMap, user, userRoom))
       socket.on('host-send-warning', (data) => courseSocketController.actionWarningUser(socket, data, currentUserRoomMap, user, userRoom))
@@ -126,6 +131,7 @@ const initSockets = (io) => {
 
       const disconnectedPeer = (socketID) => {
         for (const [_socketID, _socket] of currentUserRoomMap.entries()) {
+          console.log("send disconnect")
           _socket.emit('peer-disconnected', {
             socketID
           })

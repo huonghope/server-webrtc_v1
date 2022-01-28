@@ -7,6 +7,7 @@ const moment = require("moment")
 const { getFirstValueMap } = require('../helper')
 
 const Logger = require('../../../config/logger')
+const LoggerSpeaker = require('../../../config/loggerSpeaker');
 const logger = new Logger('course-socket')
 
 //!강사한테만 socket를 구분해야됨
@@ -297,6 +298,36 @@ const courseSocketController = {
             }
         } catch (error) {
             logger.error(error)            
+        }
+    },
+    alertUserSpeaking: async (mainSocket, data, meetingRoom, user, userRoom) => {
+        const _connectedPeers = meetingRoom;
+        if (_connectedPeers === undefined) return;
+        const {userId, remoteSocketId, status, recordInfo} = data;
+    
+        let objectInfo = {
+          userId,
+          userName: user.user_name,
+          roomId: userRoom.room_id,
+        };
+
+        // 만약에상태는 true이고 녹화하고 있으면 speaker 메모함
+        if (status && recordInfo) {
+          const {recordInfo} = data;
+          const {starttime} = recordInfo;
+          const currentTime = moment().format('DD/MM/YYYY HH:mm:ss');
+          let diffTime = moment.utc(moment(currentTime, 'DD/MM/YYYY HH:mm:ss').diff(moment(starttime, 'DD/MM/YYYY HH:mm:ss'))).format('HH:mm:ss');
+          diffTime = '음성 기록';
+          const loggerSpeader = new LoggerSpeaker(userRoom.room_id, diffTime);
+          loggerSpeader.info('speaker', objectInfo);
+        }
+
+        for (const [__socketID, __socket] of _connectedPeers.entries()) {
+          __socket.emit('alert-user-speaking', {
+            userId: userId,
+            remoteSocketId: remoteSocketId,
+            status: status,
+          });
         }
     },
     //전체학생이 마이크 클릭 이벤트

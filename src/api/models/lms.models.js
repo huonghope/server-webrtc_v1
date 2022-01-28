@@ -16,7 +16,7 @@ const requestUserInfo = (userIdx, key) => new Promise(async (resolve, reject) =>
     const host = LMS_URL;
     const path = '/LoginInfoGet.php';
     const options = {
-      url: `http://${host}${path}`,
+      url: `${host}${path}`,
       method: 'get',
       qs: {
         TYPE: 'json',
@@ -52,7 +52,7 @@ const requestLectureInfo = (lec_idx, key) => new Promise(async (resolve, reject)
   const path = '/LecterInfoGet.php';
 
   const options = {
-    url: `http://${host}${path}`,
+    url: `${host}${path}`,
     method: 'get',
     qs: {
       TYPE: 'json',

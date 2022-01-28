@@ -40,6 +40,24 @@ exports.getCurrentUser = async (req, res) => {
   });
 };
 
+exports.checkConnecting = async (req, res) => {
+  try {
+    const { userRoomId } = req.query
+    const user = await _RoomModel.getUserRoomById(userRoomId);
+    return res.json({
+      result: true,
+      data: user,
+      message: '룸유저의 정보'
+    });
+  } catch (error) {
+    return res.json({
+      result: false,
+      data: [],
+      message: '룸유저의 정보 출력 오류'
+    });
+  }
+}
+
 //처음에 유저를 정보를 보내서 token를 생성함
 /**
  * 
@@ -65,10 +83,14 @@ exports.configUser = async (req, res) => {
       if(userInfo){
         //유저의 정보를 한번 다시 업데이트
         let app_key = userInfo.app_key
+
+        console.log(user_idx, app_key)
         userInfo = await _LectureModel.requestUserInfo(user_idx, app_key)
+
+        console.log(userInfo)
         const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userInfo.map;
         userInfo = await _UserModel.updateUser({USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM, APP_KEY: app_key})
-        
+
         const userInfoToken = {
           userId: userInfo.user_idx,
           userName: userInfo.user_name,
@@ -88,8 +110,10 @@ exports.configUser = async (req, res) => {
         //!학생은 처음에 접근할떄
         const hostUser = await _UserModel.getUserByUserIdx(getRedirectUser.user_idx);
         let userInfo = await _LectureModel.requestUserInfo(user_idx, hostUser.app_key);
+        console.log("user Info", userInfo)
         if(checkLectureAPI(userInfo)) //성공함
         {
+          console.log("user Info", userInfo)
           const {USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM} = userInfo.map;
           userInfo = await _UserModel.insertUser({USER_IDX , NAME, STATUS , SC_CODE, SCHUL_CODE, GRADE, CLASS_NM, CLASS_NO, USER_TP, SCHUL_NM, APP_KEY: hostUser.app_key})
           logger.setLogData(userInfo)
@@ -129,8 +153,13 @@ exports.configUser = async (req, res) => {
       })
     }
   } catch (error) {
+    console.log(error)
     logger.info(error)
-    next(error)
+    return res.json({
+      result: false,
+      data: [],
+      message: '서버 오류 발생합니다.'
+    });
   }
 }
 

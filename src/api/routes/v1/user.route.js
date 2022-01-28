@@ -13,4 +13,8 @@ router
   .route('/current')
   .get(authorize(LOGGED_USER), controller.getCurrentUser);
 
+router
+  .route('/check-connecting')
+  .get(authorize(LOGGED_USER), controller.checkConnecting);
+
 module.exports = router;

@@ -51,6 +51,18 @@ const getFirstValueMap = async (map, roomId = null) => {
     console.log(error)    
   }
 }
+const getFirstValueKeyMap = async (map, roomId = null) => {
+  if (map) {
+    const userRoomHost = await _RoomModel.getHostUserRoomInfo(roomId);
+    for (const [_socketID, _socket] of map.entries()) {
+      if (userRoomHost.socket_id === _socketID) {
+        return {_socket, _socketID};
+      }
+    }
+    return null;
+  }
+  return null;
+}
 
 const updateStateForUserRoom = async(userRoomId, state) => {
   try {
@@ -89,6 +101,7 @@ const sleep = async (ms) => {
 }
 module.exports = {
   getFirstValueMap,
+  getFirstValueKeyMap,
   getUserInfo,
   insertSocketIdToUserRoom,
   updateSocketId,
